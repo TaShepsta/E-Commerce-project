@@ -8,7 +8,6 @@
 
         <h1>
           <span>Rent</span> what you need. <span>Earn</span> from what you own.
-        
         </h1>
 
         <p class="hero-description">
@@ -57,19 +56,7 @@
 
         <!-- Product image area -->
         <div class="product-image">
-
-          <div class="image-placeholder">
-            <div class="placeholder-icon">🚚</div>
-
-            <span>
-              Product image
-            </span>
-
-            <small>
-              Trailer / equipment image goes here
-            </small>
-          </div>
-
+          <img src="@/assets/hero-section-bg.jpeg" alt="Rental products including trailer, refrigerator, tent, and equipment" />
         </div>
 
 
@@ -302,42 +289,18 @@
 
   overflow: hidden;
 
-  background:
-    linear-gradient(
-      135deg,
-      #f4f1e8,
-      #e8e4d8
-    );
+  background: #f4f1e8;
 
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.image-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  color: #777777;
-
-  text-align: center;
-}
-
-.placeholder-icon {
-  font-size: 100px;
-  margin-bottom: 15px;
-}
-
-.image-placeholder span {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.image-placeholder small {
-  margin-top: 5px;
-  font-size: 13px;
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 

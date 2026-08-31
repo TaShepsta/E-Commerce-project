@@ -49,7 +49,10 @@
       </div>
 
       <!-- Mobile Menu Button -->
-      <button class="mobile-menu-btn" aria-label="Open menu">
+      <button
+        class="mobile-menu-btn"
+        aria-label="Open menu"
+      >
         ☰
       </button>
 
@@ -59,22 +62,33 @@
 
 <style scoped>
 
+/* =========================
+   NAVBAR
+========================= */
+
 .navbar {
   width: 100%;
   height: 72px;
+
   background: #ffffff;
+
   border-bottom: 1px solid #e5e5e5;
 
   display: flex;
   align-items: center;
 
-  position: relative;
-  z-index: 100;
+  /* Sticky navbar */
+  position: sticky;
+  top: 0;
+
+  /* Keep navbar above everything */
+  z-index: 1000;
 }
 
 .navbar-container {
   width: 100%;
   max-width: 1450px;
+
   margin: 0 auto;
 
   padding: 0 40px;
@@ -116,6 +130,7 @@
 .nav-links {
   display: flex;
   align-items: center;
+
   gap: 32px;
 }
 
@@ -148,6 +163,7 @@
 .account-actions {
   display: flex;
   align-items: center;
+
   gap: 20px;
 
   white-space: nowrap;
@@ -160,6 +176,8 @@
 
   font-size: 14px;
   font-weight: 500;
+
+  transition: color 0.2s ease;
 }
 
 .login-btn:hover {
@@ -188,13 +206,14 @@
 
 
 /* =========================
-   MOBILE MENU
+   MOBILE MENU BUTTON
 ========================= */
 
 .mobile-menu-btn {
   display: none;
 
   border: none;
+
   background: transparent;
 
   font-size: 26px;
