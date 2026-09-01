@@ -1,10 +1,11 @@
-<script setup>
-import Navbar from '../components/Navbar.vue'
 
-</script>
 
 <template>
   <main class="signup-page">
+
+<RouterLink to="/" class="back-home">
+  ← Back to Home
+</RouterLink>
 
     <!-- =========================
          PAGE HEADER
@@ -204,6 +205,34 @@ import Navbar from '../components/Navbar.vue'
 
 
 <style scoped>
+
+/* =====================================================
+   BACK TO HOME
+===================================================== */
+
+.back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #063b2f;
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  margin-bottom: 35px;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-home:hover {
+  color: #f5a000;
+  transform: translateX(-3px);
+}
+
 
 /* =====================================================
    PAGE
