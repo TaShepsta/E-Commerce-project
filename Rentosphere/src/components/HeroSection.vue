@@ -315,7 +315,8 @@
 
   position: absolute;
 
-  right: 0;
+  right: -20px;
+
   top: 50%;
 
   transform: translateY(-50%);
@@ -324,7 +325,9 @@
 
   border-radius: 18px;
 
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.10);
+
+  z-index: 10;
 }
 
 .owner-card h2 {
