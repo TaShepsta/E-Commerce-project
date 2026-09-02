@@ -62,7 +62,7 @@
       </div>
 
       <button type="submit" class="btn-primary full-width" :disabled="loading">
-        {{ loading? 'Submitting': 'Submit Product for Safety Evaluation' }}
+        {{ loading? 'Submitting': 'Submit for Safety Evaluation' }}
       </button>
      </form>
 
@@ -104,3 +104,109 @@ const submitProduct = async () => {
   }
 }
 </script>
+
+<style scoped>
+.owner-wrapper {
+  max-width: 800px;
+  margin: 40px auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+}
+.owner-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+.owner-header p {
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.safety-alert {
+  background: #fffbeb;
+  border: 1px solid var(--yellow);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+.safety-icon {
+  font-size: 24px;
+  color: var(--yellow);
+}
+
+.owner-form {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.form-group input, .form-group select {
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+.form-group textarea {
+  height: 100px;
+  padding: 16px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.commission-box {
+  background: var(--light);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+}
+.commission-row {
+  display:flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+.commission-row .total {
+  font-weight: 700;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.full-width {
+  width: 100%;
+}
+.success-box {
+  margin-top: 20px;
+  background: #f0fdf4;
+  border: 1px solid var(--green);
+  border-radius: 12px;
+  padding: 16px;
+}
+@media (max-width: 768px) {
+  .owner-wrapper{
+    margin: 20px;
+    padding: 20px;
+  }
+  .form-row {
+    flex-direction: column;
+  }
+}
+</style>
