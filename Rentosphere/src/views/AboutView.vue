@@ -1,408 +1,442 @@
 <template>
   <div class="about-page">
-    <div class="sphere" aria-hidden="true"></div>
-
-    <!-- Nav -->
-    <header class="nav">
-      <a href="/" class="brand">
-        <span class="brand__mark"></span>
-        Rentosphere
-      </a>
-      <a href="/login" class="nav__link">Log in</a>
-    </header>
-
-    <!-- Hero -->
+    <!-- Hero: asymmetric two-column -->
     <section class="hero">
-      <h1>Own less.<br />Access more.</h1>
-      <p>
-        Rentosphere connects people who own things with people who need
-        them — for a weekend, a project, or a single afternoon.
+      <h1 class="hero-heading">
+        Need it? Rent it.
+      </h1>
+      <p class="hero-text">
+        A trailer for one weekend, a gas tank for one job, a sound system
+        for one event — none of it has to be bought when it could already
+        be a few streets away. Rentosphere brings trailers, tools,
+        appliances, machinery and event equipment onto one platform, so
+        you don't have to search a different rental company for every
+        different thing you need.
       </p>
     </section>
 
-    <!-- Content panel -->
-    <div class="panel">
-      <section class="story">
-        <div class="story__label">Our story</div>
-        <div class="story__content">
-          <p>
-            Most of what we own sits unused most of the time. A trailer
-            that moves house once a year. A generator that runs for one
-            storm. A pressure washer used twice a summer. Rentosphere
-            started with a simple question: what if that idle equipment
-            could pay for itself, and what if renting it were as easy as
-            buying it?
-          </p>
-          <p>
-            Today, Rentosphere is a marketplace where owners list what
-            they have and renters book what they need — with every
-            listing checked for safety and quality before it goes live,
-            and every booking backed by secure payments and delivery
-            support.
-          </p>
-        </div>
-      </section>
+    <!-- Stats: asymmetric, one large + three small -->
+    <section class="stats">
+      <div class="stat-lead">
+        <p class="stat-number">12K+</p>
+        <p class="stat-label">items listed and counting</p>
+      </div>
+      <div class="stat-minor" v-for="s in stats" :key="s.label">
+        <p class="stat-number-sm">{{ s.number }}</p>
+        <p class="stat-label">{{ s.label }}</p>
+      </div>
+    </section>
 
-      <section class="values">
-        <article class="value-card">
-          <h2>Trust, verified</h2>
-          <p>
-            Every item is inspected before listing, every owner is
-            reviewed by renters, and every payment is held securely
-            until the handover is confirmed.
-          </p>
-        </article>
+    <!-- Story: pull-quote band -->
+    <section class="story">
+      <p class="quote-mark" aria-hidden="true">&ldquo;</p>
+      <p class="quote">
+        Most of what we own spends far more time in storage than in use.
+        We started Rentosphere so those idle hours could be worth something
+        — to the owner, to the renter, and to the one less thing that had
+        to be made.
+      </p>
+    </section>
 
-        <article class="value-card">
-          <h2>Community over inventory</h2>
-          <p>
-            We're not a warehouse. We're a network of neighbours,
-            tradespeople, and small businesses lending each other what
-            they already own.
-          </p>
-        </article>
+    <!-- Differentiators: what sets the platform apart -->
+    <section class="differentiators">
+      <h2 class="section-heading">What makes Rentosphere different</h2>
+      <div class="diff-grid">
+        <div class="diff-card" v-for="d in differentiators" :key="d.title">
+          <h3>{{ d.title }}</h3>
+          <p>{{ d.text }}</p>
+        </div>
+      </div>
+    </section>
 
-        <article class="value-card">
-          <h2>Less waste, more use</h2>
-          <p>
-            Every rental is one fewer item manufactured, shipped, and
-            thrown away. Sharing what already exists is the quickest way
-            to buy less.
-          </p>
-        </article>
-      </section>
+    <!-- How it works: three-step process (order matters, numbering earned) -->
+    <section class="process">
+      <h2 class="section-heading">How it works</h2>
+      <ol class="process-list">
+        <li v-for="(step, i) in processSteps" :key="step.title" class="process-step">
+          <span class="step-number">{{ i + 1 }}</span>
+          <div>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.text }}</p>
+          </div>
+        </li>
+      </ol>
+    </section>
 
-      <section class="stats">
-        <div class="stat">
-          <strong>12,400+</strong>
-          <span>items listed</span>
+    <!-- Values: what we hold owners and renters to -->
+    <section class="values">
+      <h2 class="section-heading">For renters and owners alike</h2>
+      <div class="value-grid">
+        <div class="value-card" v-for="v in values" :key="v.title">
+          <h3>{{ v.title }}</h3>
+          <p>{{ v.text }}</p>
         </div>
-        <div class="stat">
-          <strong>4.8/5</strong>
-          <span>average rating</span>
-        </div>
-        <div class="stat">
-          <strong>1,250+</strong>
-          <span>reviews</span>
-        </div>
-        <div class="stat">
-          <strong>18</strong>
-          <span>cities served</span>
-        </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="cta">
-        <h2>Have something worth sharing?</h2>
-        <p>List it in minutes and start earning from what you already own.</p>
-        <div class="cta__actions">
-          <a href="/signup" class="cta__primary">Become an owner</a>
-          <a href="/browse" class="cta__secondary">Browse rentals</a>
+    <!-- CTA: mirrors the homepage owner panel -->
+    <section class="cta-band">
+      <div class="cta-content">
+        <h2>Have something sitting idle?</h2>
+        <p>
+          List it in a few minutes and start earning when someone nearby
+          needs it.
+        </p>
+        <div class="cta-actions">
+          <RouterLink to="/list-item" class="cta-btn primary">
+            Become an Owner
+          </RouterLink>
+          <RouterLink to="/browse" class="cta-btn secondary">
+            Browse Products
+          </RouterLink>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   </div>
 </template>
 
+<script setup>
+const stats = [
+  { number: '4,300+', label: 'active owners' },
+  { number: '18', label: 'cities served' },
+  { number: '4.8★', label: 'average rating' },
+]
+
+const differentiators = [
+  {
+    title: 'Everything in one place',
+    text: 'Trailers, tools, appliances, machinery and event equipment, all searchable in one place — instead of a different rental company for every category.',
+  },
+  {
+    title: 'Every product evaluated',
+    text: "Before an item goes live, we check its condition, functionality and safety. That's especially important for equipment where poor condition can be a real risk.",
+  },
+  {
+    title: 'Delivery, coordinated',
+    text: "Not everyone can collect a trailer in person. Where it's offered, Rentosphere arranges delivery and collection so the rental fits your day, not the other way round.",
+  },
+]
+
+const processSteps = [
+  {
+    title: 'Find what you need',
+    text: 'Search by category or location and filter by dates — every listing is verified before it goes live.',
+  },
+  {
+    title: 'Book with confidence',
+    text: 'Pay securely through Rentosphere and message the owner directly to sort out pickup or delivery.',
+  },
+  {
+    title: 'Return it, rate it',
+    text: "Hand it back and we check it over for damage before the rental closes out. Then both sides leave a review, so trust builds with every booking.",
+  },
+]
+
+const values = [
+  {
+    title: 'For renters',
+    text: "Compare products by price, condition and availability, pay securely through the platform, and know what shows up is what you booked.",
+  },
+  {
+    title: 'For owners',
+    text: 'List something sitting unused, set your own availability, and get paid out once the rental is returned and checked over.',
+  },
+  {
+    title: 'For everyone',
+    text: "No cash handoffs, no chasing deposits. Every payment, message and booking stays on the platform, so there's a record if something needs sorting out.",
+  },
+]
+</script>
+
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
-
 .about-page {
-  --forest: #0f2820;
-  --cream: #faf6ec;
-  --ink: #16302a;
-  --ink-soft: #6b7770;
-  --on-dark: #d9e6df;
-  --gold-1: #ffd68a;
-  --gold-2: #eb9d3e;
-  --line: #e7ddc8;
-
-  position: relative;
-  min-height: 100vh;
-  background: var(--forest);
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  overflow: hidden;
+  color: #16221c;
 }
 
-.sphere {
-  position: absolute;
-  top: -20vw;
-  right: -14vw;
-  width: 52vw;
-  height: 52vw;
-  min-width: 420px;
-  min-height: 420px;
-  max-width: 680px;
-  max-height: 680px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 34%, var(--gold-1) 0%, var(--gold-2) 42%, rgba(235, 157, 62, 0.15) 68%, transparent 78%);
-  filter: blur(2px);
-  pointer-events: none;
-}
-
-/* ---------- Nav ---------- */
-.nav {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2.25rem 2rem 0;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--cream);
-  text-decoration: none;
-}
-
-.brand__mark {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--gold-2);
-}
-
-.nav__link {
-  font-size: 0.88rem;
-  color: var(--on-dark);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(217, 230, 223, 0.35);
-  padding-bottom: 2px;
-}
-
-.nav__link:hover {
-  border-color: var(--gold-2);
-  color: var(--gold-1);
+.section-heading {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 32px;
 }
 
 /* ---------- Hero ---------- */
 .hero {
-  position: relative;
-  z-index: 2;
-  max-width: 900px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 3.5rem 2rem 5rem;
+  padding: 96px 24px 64px;
+  text-align: center;
 }
 
-.hero h1 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: clamp(2.6rem, 5.5vw, 3.8rem);
-  line-height: 1.06;
-  margin: 0 0 1.1rem;
-  color: var(--cream);
+.hero-heading {
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
 }
 
-.hero p {
-  max-width: 46ch;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  color: var(--on-dark);
-  margin: 0;
-}
-
-/* ---------- Content panel ---------- */
-.panel {
-  position: relative;
-  z-index: 2;
-  background: var(--cream);
-  border-radius: 28px 28px 0 0;
-  padding-top: 0.5rem;
-}
-
-.story {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 3.5rem 2rem 3rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  gap: 2rem;
-}
-
-.story__label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--gold-2);
-  padding-top: 0.2rem;
-}
-
-.story__content p {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--ink);
-  margin: 0 0 1.25rem;
-  max-width: 62ch;
-}
-
-.story__content p:last-child {
-  margin-bottom: 0;
-}
-
-/* ---------- Values ---------- */
-.values {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem 3.5rem;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-}
-
-.value-card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 1.6rem;
-}
-
-.value-card h2 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin: 0 0 0.6rem;
-  color: var(--ink);
-}
-
-.value-card p {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
+.hero-text {
+  font-size: 18px;
+  line-height: 1.65;
+  color: #414d47;
   margin: 0;
 }
 
 /* ---------- Stats ---------- */
 .stats {
-  max-width: 900px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 2.5rem 2rem;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  padding: 0 24px 80px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 24px;
+  align-items: end;
 }
 
-.stat {
+.stat-lead .stat-number {
+  font-size: 56px;
+  font-weight: 700;
+  color: #0f4c3a;
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.stat-number-sm {
+  font-size: 32px;
+  font-weight: 700;
+  color: #16221c;
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #5b6660;
+  margin: 0;
+}
+
+/* ---------- Story ---------- */
+.story {
+  background: #0f4c3a;
+  color: #ffffff;
+  padding: 88px 24px;
+}
+
+.quote-mark {
+  max-width: 760px;
+  margin: 0 auto;
+  font-size: 64px;
+  line-height: 1;
+  color: #f5a623;
+  font-weight: 700;
+}
+
+.quote {
+  max-width: 760px;
+  margin: -12px auto 0;
+  font-size: 26px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Differentiators ---------- */
+.differentiators {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 96px 24px 0;
+}
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.diff-card {
+  border: 1.5px solid #e6e9e6;
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.diff-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.diff-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #414d47;
+  margin: 0;
+}
+
+/* ---------- Process ---------- */
+.process {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 96px 24px;
+}
+
+.process-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 40px;
 }
 
-.stat strong {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 1.9rem;
-  color: var(--ink);
+.process-step {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
 }
 
-.stat span {
-  font-size: 0.82rem;
-  color: var(--ink-soft);
+.step-number {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f5a623;
+  color: #16221c;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ---------- CTA ---------- */
-.cta {
-  max-width: 900px;
+.process-step h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 4px 0 8px;
+}
+
+.process-step p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #414d47;
+  margin: 0;
+  max-width: 56ch;
+}
+
+/* ---------- Values ---------- */
+.values {
+  background: #f7f1e4;
+  padding: 96px 24px;
+}
+
+.values .section-heading {
+  max-width: 1040px;
+  margin: 0 auto 32px;
+}
+
+.value-grid {
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 3.5rem 2rem 5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.value-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.value-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #414d47;
+  margin: 0;
+}
+
+/* ---------- CTA band ---------- */
+.cta-band {
+  padding: 96px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.cta-content {
+  background: #0f4c3a;
+  color: #ffffff;
+  border-radius: 24px;
+  padding: 64px 48px;
+  max-width: 640px;
+  width: 100%;
   text-align: center;
 }
 
-.cta h2 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 1.9rem;
-  margin: 0 0 0.6rem;
-  color: var(--ink);
+.cta-content h2 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
 }
 
-.cta p {
-  font-size: 1rem;
-  color: var(--ink-soft);
-  margin: 0 0 1.75rem;
+.cta-content p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 32px;
 }
 
-.cta__actions {
+.cta-actions {
   display: flex;
+  gap: 16px;
   justify-content: center;
-  gap: 1rem;
   flex-wrap: wrap;
 }
 
-.cta__primary {
-  background: var(--ink);
-  color: var(--cream);
-  padding: 0.82rem 1.75rem;
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 28px;
   border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 0.94rem;
+  transition: opacity 0.15s ease;
 }
 
-.cta__primary:hover {
-  background: #0e211c;
+.cta-btn:hover {
+  opacity: 0.9;
 }
 
-.cta__secondary {
+.cta-btn.primary {
+  background: #f5a623;
+  color: #16221c;
+}
+
+.cta-btn.secondary {
   background: transparent;
-  color: var(--ink);
-  padding: 0.82rem 1.75rem;
-  border-radius: 999px;
-  border: 1.5px solid var(--line);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.94rem;
-}
-
-.cta__secondary:hover {
-  border-color: var(--ink);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 720px) {
-  .sphere {
-    top: -30vw;
-    right: -28vw;
-    width: 80vw;
-    height: 80vw;
-    min-width: 340px;
-    min-height: 340px;
-  }
-
-  .nav {
-    padding: 1.75rem 1.5rem 0;
-  }
-
-  .hero {
-    padding: 2.5rem 1.5rem 3.5rem;
-  }
-
-  .story {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-    padding: 2.75rem 1.5rem 2rem;
-  }
-
-  .values {
-    grid-template-columns: 1fr;
-    padding: 0.5rem 1.5rem 2.75rem;
-  }
-
+@media (max-width: 860px) {
   .stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 2rem;
-    padding: 2rem 1.5rem;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 40px;
   }
 
-  .cta {
-    padding: 2.75rem 1.5rem 3.5rem;
+  .value-grid,
+  .diff-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quote {
+    font-size: 21px;
+  }
+
+  .cta-content {
+    padding: 48px 28px;
   }
 }
 </style>
