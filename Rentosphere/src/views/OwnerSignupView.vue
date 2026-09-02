@@ -220,7 +220,7 @@
 
 
 <script setup>
-
+import Swal from 'sweetalert2'
 import { reactive, ref } from 'vue'
 
 
@@ -276,7 +276,12 @@ function createAccount() {
   })
 
 
-  alert('Owner account created successfully!')
+
+  Swal.fire({
+    title: "Good job!",
+    text: "Owner account created successfully!",
+    icon: "success"
+  })
 
 }
 

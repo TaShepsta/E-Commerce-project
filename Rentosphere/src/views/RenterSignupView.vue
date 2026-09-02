@@ -217,7 +217,7 @@
 
 
 <script setup>
-
+import Swal from 'sweetalert2'
 import { reactive, ref } from 'vue'
 
 
@@ -273,7 +273,11 @@ function createAccount() {
   })
 
 
-  alert('Renter account created successfully!')
+  Swal.fire({
+    title: "Good job!",
+    text: "Renter account created successfully!",
+    icon: "success"
+  })
 
 }
 
