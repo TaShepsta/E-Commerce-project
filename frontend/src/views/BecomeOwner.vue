@@ -74,6 +74,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { reactive, ref } from 'vue';
 import axios from 'axios';
 
@@ -96,9 +97,18 @@ const submitProduct = async () => {
     Object.entries(form).forEach(([key, value]) => formData.append(key, value))
     if (image.value) formData.append('image', image.value)
     const res = await axios.post('/api/owner/list-product', formData)
-    result.value = res.data.message
+    Swal.fire({
+      icon: 'success',
+      title: 'Submitted!',
+      text: res.data.message || 'Product submitted for safety evaluation',
+    })
   } catch (error) {
-    alert(error.response?.data?.error || 'Submission failed. Please try again.')
+    Swal.fire({
+      icon: 'error',
+      title: 'Submission failed',
+      text: error.response?.data?.error || 'Submission failed. Please try again.',
+      confirmButtonColor: '#f59e0b'
+    })
   } finally {
     loading.value = false
   }

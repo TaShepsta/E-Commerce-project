@@ -55,14 +55,24 @@
 <script setup>
 import {ref, computed, onMounted} from 'vue';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const products = ref([]);
 const categories = ['Tools', 'Trailers', 'Gas Tanks', 'Appliances', 'Event Equipment', 'Machinery'];
 const filters = ref({ categories:[], priceRange: 2000, location: '' });
 
 onMounted(async() => {
-  const res = await axios.get('/api/products?status=Safety Verified')
+  try {
+    const res = await axios.get('/api/products?status=Safety Verified')
   products.value = res.data;
+  } catch(err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Failed to load products',
+      text: err.response?.data?.error || 'backend not running',
+      confirmButtonColor: '#0f172a'
+    })
+  }
 })
 
 const filteredProducts = computed(() => {
