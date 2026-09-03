@@ -3,18 +3,24 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const name = ref('')
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const error = ref('')
 
 const handleSubmit = () => {
   error.value = ''
-  if (!email.value || !password.value) {
-    error.value = 'Enter your email and password to continue.'
+  if (!name.value || !email.value || !password.value) {
+    error.value = 'Fill in every field to create your account.'
+    return
+  }
+  if (password.value !== confirmPassword.value) {
+    error.value = 'Passwords do not match.'
     return
   }
   // TODO: replace with a real call to the backend auth endpoint
-  console.log('login attempt', { email: email.value })
+  console.log('signup attempt', { name: name.value, email: email.value })
   router.push('/')
 }
 </script>
@@ -22,10 +28,15 @@ const handleSubmit = () => {
 <template>
   <section class="auth-page container">
     <div class="auth-card">
-      <h1>Welcome back</h1>
-      <p class="subtitle">Log in to manage your rentals and listings.</p>
+      <h1>Create your account</h1>
+      <p class="subtitle">Join Rentosphere to rent items or list your own.</p>
 
       <form @submit.prevent="handleSubmit">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" v-model="name" type="text" placeholder="Jane Doe" autocomplete="name" />
+        </div>
+
         <div class="field">
           <label for="email">Email</label>
           <input id="email" v-model="email" type="email" placeholder="you@example.com" autocomplete="email" />
@@ -33,17 +44,22 @@ const handleSubmit = () => {
 
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" v-model="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+          <input id="password" v-model="password" type="password" placeholder="••••••••" autocomplete="new-password" />
+        </div>
+
+        <div class="field">
+          <label for="confirm-password">Confirm password</label>
+          <input id="confirm-password" v-model="confirmPassword" type="password" placeholder="••••••••" autocomplete="new-password" />
         </div>
 
         <p v-if="error" class="form-error">{{ error }}</p>
 
-        <button type="submit" class="btn btn-primary btn-block">Log in</button>
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
       </form>
 
       <p class="switch-auth">
-        Don't have an account?
-        <router-link to="/signup">Sign up</router-link>
+        Already have an account?
+        <router-link to="/login">Log in</router-link>
       </p>
     </div>
   </section>
