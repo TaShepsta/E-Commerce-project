@@ -43,7 +43,13 @@
           <div class="product-details">
             <div class="product-title">
               <h2>{{ product.name }}</h2>
-              <button type="button" aria-label="Save item">♡</button>
+              <button
+                type="button"
+                aria-label="Save item"
+                @click="saveItem(product.name)"
+              >
+                ♡
+              </button>
             </div>
             <div class="rating">
               <span>★</span> {{ product.rating }}
@@ -57,7 +63,13 @@
               <strong
                 >R{{ product.price }}
                 <small>/ {{ product.priceUnit }}</small></strong
-              ><button class="view-button" type="button">View details</button>
+              ><button
+                class="view-button"
+                type="button"
+                @click="viewDetails(product.name)"
+              >
+                View details
+              </button>
             </div>
           </div>
         </article>
@@ -77,6 +89,7 @@
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { eventCategories, products } from "../data/products";
+import { showToast } from "../utils/notifications";
 
 const route = useRoute();
 const searchTerm = ref("");
@@ -90,6 +103,14 @@ const filteredProducts = computed(() =>
       product.name.toLowerCase().includes(searchTerm.value.toLowerCase()),
   ),
 );
+
+function saveItem(name) {
+  showToast(`${name} was saved to your wishlist.`, "success");
+}
+
+function viewDetails(name) {
+  showToast(`Details for ${name} are coming soon.`, "info");
+}
 </script>
 
 <style scoped>

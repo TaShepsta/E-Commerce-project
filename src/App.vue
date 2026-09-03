@@ -85,7 +85,33 @@ nav a:first-of-type {
 </style> -->
 
 <script setup>
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import logo from "./assets/rentosphere.png";
+import { showToast } from "./utils/notifications";
+
+const route = useRoute();
+const menuOpen = ref(false);
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value;
+}
+
+function closeMenu() {
+  menuOpen.value = false;
+}
+
+function handleEscape(event) {
+  if (event.key === "Escape") closeMenu();
+}
+
+function handleAuth(action) {
+  showToast(`${action} is coming soon.`, "info");
+}
+
+watch(() => route.fullPath, closeMenu);
+onMounted(() => document.addEventListener("keydown", handleEscape));
+onUnmounted(() => document.removeEventListener("keydown", handleEscape));
 </script>
 
 <template>
@@ -96,24 +122,49 @@ import logo from "./assets/rentosphere.png";
         <img :src="logo" alt="Rentosphere logo" />
       </RouterLink>
 
-      <nav class="desktop-nav">
-        <RouterLink to="/"> Home </RouterLink>
+      <button
+        class="menu-toggle"
+        type="button"
+        :aria-expanded="menuOpen"
+        aria-controls="primary-navigation"
+        aria-label="Toggle navigation menu"
+        @click="toggleMenu"
+      >
+        <span></span><span></span><span></span>
+      </button>
 
-        <RouterLink to="/browse"> Browse </RouterLink>
+      <nav
+        id="primary-navigation"
+        class="desktop-nav"
+        :class="{ 'is-open': menuOpen }"
+      >
+        <RouterLink to="/" @click="closeMenu"> Home </RouterLink>
 
-        <RouterLink to="/categories"> Categories </RouterLink>
+        <RouterLink to="/browse" @click="closeMenu"> Browse </RouterLink>
 
-        <RouterLink to="/how-it-works"> How It Works </RouterLink>
+        <RouterLink to="/categories" @click="closeMenu">
+          Categories
+        </RouterLink>
 
-        <RouterLink to="/become-owner"> Become an Owner </RouterLink>
+        <RouterLink to="/how-it-works" @click="closeMenu">
+          How It Works
+        </RouterLink>
 
-        <RouterLink to="/about"> About Us </RouterLink>
+        <RouterLink to="/become-owner" @click="closeMenu">
+          Become an Owner
+        </RouterLink>
+
+        <RouterLink to="/about" @click="closeMenu"> About Us </RouterLink>
       </nav>
 
       <div class="auth-buttons">
-        <button class="login-button">Log in</button>
+        <button class="login-button" @click="handleAuth('Log in')">
+          Log in
+        </button>
 
-        <button class="signup-button">Sign up</button>
+        <button class="signup-button" @click="handleAuth('Sign up')">
+          Sign up
+        </button>
       </div>
     </header>
 
@@ -176,6 +227,42 @@ a {
   align-items: center;
   justify-content: center;
   gap: 28px;
+}
+
+.menu-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-left: auto;
+  border: 1px solid #e6e2da;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+}
+
+.menu-toggle span {
+  width: 19px;
+  height: 2px;
+  background: #0b3b32;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.menu-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 .desktop-nav a {
@@ -255,30 +342,38 @@ a {
 
 @media (max-width: 800px) {
   .navbar {
-    min-height: 112px;
+    min-height: 72px;
     flex-wrap: wrap;
-    gap: 8px 16px;
+    gap: 8px;
     padding: 0 5%;
   }
 
-  .desktop-nav {
-    flex: initial;
-    width: 100%;
-    order: 3;
-    justify-content: flex-start;
-    gap: 20px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    scrollbar-width: none;
+  .menu-toggle {
+    display: flex;
   }
 
-  .desktop-nav::-webkit-scrollbar {
+  .desktop-nav {
     display: none;
+    width: 100%;
+    order: 3;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px 0 14px;
+  }
+
+  .desktop-nav.is-open {
+    display: flex;
   }
 
   .desktop-nav a {
-    flex: 0 0 auto;
+    padding: 13px 4px;
     font-size: 0.8rem;
+  }
+
+  .desktop-nav a::after {
+    bottom: 4px;
+    transform-origin: left;
   }
 
   .logo-link img {
@@ -286,7 +381,7 @@ a {
   }
 
   .auth-buttons {
-    margin-left: auto;
+    margin-left: 0;
   }
 
   .login-button,
