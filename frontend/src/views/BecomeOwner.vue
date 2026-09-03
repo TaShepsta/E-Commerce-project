@@ -24,12 +24,12 @@
         <div class="form-group">
           <label>Category *</label>
           <select v-model="form.category" required>
-            <option>Tools</option>
-            <option>Trailers</option>
-            <option>Gas Tanks</option>
-            <option>Appliances</option>
-            <option>Event Equipment</option>
-            <option>Machinery</option>
+            <option>Weddings</option>
+            <option>Birthdays & Parties</option>
+            <option>Outdoor & Camping</option>
+            <option>Moving & Home</option>
+            <option>DIY & Projects</option>
+            <option>Graduations</option>
           </select>
         </div>
         <div class="form-group">

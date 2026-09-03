@@ -58,7 +58,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 
 const products = ref([]);
-const categories = ['Tools', 'Trailers', 'Gas Tanks', 'Appliances', 'Event Equipment', 'Machinery'];
+const categories = ['Weddings', 'Birthdays & Parties', 'Outdoor & Camping', 'Moving & Home', 'DIY & Projects', 'Graduations'];
 const filters = ref({ categories:[], priceRange: 2000, location: '' });
 
 onMounted(async() => {
