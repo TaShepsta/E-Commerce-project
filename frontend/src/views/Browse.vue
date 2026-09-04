@@ -41,9 +41,9 @@
               <h4>{{ p.title }}</h4>
               <p class="meta">{{ p.location }} , {{ p.category }}</p>
               <div class="price-row">
-                <span class="price">R{{ p.price }}/day</span>
+                <span class="price">R{{ p.price_per_day }}/day</span>
               </div>
-              <div class="earning-hint">Owner Earnings: R{{ (p.price * 0.85).toFixed(0) }} | Fee: R{{ (p.price * 0.15).toFixed(0) }}</div>
+              <div class="earning-hint">Owner Earnings: R{{ (p.price_per_day * 0.85).toFixed(0) }} | Fee: R{{ (p.price_per_day * 0.15).toFixed(0) }}</div>
               <button class="btn-small">View Details & Book</button>
             </div>
           </div>
@@ -78,7 +78,7 @@ onMounted(async() => {
 const filteredProducts = computed(() => {
   return products.value.filter(p => {
     const catOk = filters.value.categories.length === 0 || filters.value.categories.includes(p.category);
-    const priceOk = Number(p.price) <= filters.value.priceRange;
+    const priceOk = Number(p.price_per_day) <= filters.value.priceRange;
     const locOk = !filters.value.location || p.location.toLowerCase().includes(filters.value.location.toLowerCase());
     return catOk && priceOk && locOk;
   })
