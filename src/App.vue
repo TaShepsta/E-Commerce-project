@@ -92,7 +92,7 @@ import { showToast } from "./utils/notifications";
 
 const route = useRoute();
 const menuOpen = ref(false);
-const isApprovedOwner = ref(true);
+const isApprovedOwner = ref(false); //Change this to true when you want to test the owner
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
