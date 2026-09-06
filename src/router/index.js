@@ -29,6 +29,8 @@ import AboutView from "../views/AboutView.vue";
 import CategoriesView from "../views/CategoriesView.vue";
 import HowItWorksView from "../views/HowItWorksView.vue";
 import BrowseView from "../views/BrowseView.vue";
+import MyEarningsView from "../views/MyEarningsView.vue";
+import MyListingsView from "../views/MyListingsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,6 +56,18 @@ const router = createRouter({
       path: "/categories",
       name: "categories",
       component: CategoriesView,
+    },
+
+    {
+      path: "/my-listings",
+      name: "my-listings",
+      component: MyListingsView,
+    },
+
+    {
+      path: "/my-earnings",
+      name: "my-earnings",
+      component: MyEarningsView,
     },
 
     {

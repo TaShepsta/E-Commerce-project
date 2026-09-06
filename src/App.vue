@@ -92,6 +92,7 @@ import { showToast } from "./utils/notifications";
 
 const route = useRoute();
 const menuOpen = ref(false);
+const isApprovedOwner = ref(true);
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
@@ -146,15 +147,27 @@ onUnmounted(() => document.removeEventListener("keydown", handleEscape));
           Categories
         </RouterLink>
 
-        <RouterLink to="/how-it-works" @click="closeMenu">
-          How It Works
-        </RouterLink>
+        <template v-if="isApprovedOwner">
+          <RouterLink to="/my-listings" @click="closeMenu">
+            My Listings
+          </RouterLink>
 
-        <RouterLink to="/become-owner" @click="closeMenu">
-          Become an Owner
-        </RouterLink>
+          <RouterLink to="/my-earnings" @click="closeMenu">
+            My Earnings
+          </RouterLink>
+        </template>
 
-        <RouterLink to="/about" @click="closeMenu"> About Us </RouterLink>
+        <template v-else>
+          <RouterLink to="/how-it-works" @click="closeMenu">
+            How It Works
+          </RouterLink>
+
+          <RouterLink to="/become-owner" @click="closeMenu">
+            Become an Owner
+          </RouterLink>
+
+          <RouterLink to="/about" @click="closeMenu"> About Us </RouterLink>
+        </template>
       </nav>
 
       <div class="auth-buttons">
