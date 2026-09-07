@@ -44,10 +44,11 @@
                 <span class="price">R{{ p.price_per_day }}/day</span>
               </div>
               <div class="earning-hint">Owner Earnings: R{{ (p.price_per_day * 0.85).toFixed(0) }} | Fee: R{{ (p.price_per_day * 0.15).toFixed(0) }}</div>
-              <button class="btn-small">View Details & Book</button>
+              <button class="btn-small" @click="selectedProduct = p">View Details & Book</button>
             </div>
           </div>
         </div>
+        <ProductDetail v-if="selectedProduct" :product="selectedProduct" @close="selectedProduct = null"/>
       </main>
   </div>
 </template>
@@ -56,7 +57,9 @@
 import {ref, computed, onMounted} from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import ProductDetail from '../components/ProductDetail.vue';
 
+const selectedProduct = ref(null)
 const products = ref([]);
 const categories = ['Weddings', 'Birthdays & Parties', 'Outdoor & Camping', 'Moving & Home', 'DIY & Projects', 'Graduations'];
 const filters = ref({ categories:[], priceRange: 2000, location: '' });
