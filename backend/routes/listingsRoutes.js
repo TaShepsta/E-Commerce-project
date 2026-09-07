@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { validateListing } from "../middleware/validateListing.js";
 import {
   addListing,
   editListing,
@@ -11,8 +12,8 @@ const router = Router();
 
 router.get("/", listListings);
 router.get("/:id", showListing);
-router.post("/", addListing);
-router.put("/:id", editListing);
+router.post("/", validateListing, addListing);
+router.put("/:id", validateListing, editListing);
 router.delete("/:id", removeListing);
 
 export default router;

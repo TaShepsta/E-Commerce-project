@@ -1,38 +1,38 @@
-CREATE DATABASE IF NOT EXISTS rentosphere;
-USE rentosphere;
+-- CREATE DATABASE IF NOT EXISTS rentosphere;
+-- USE rentosphere;
 
-CREATE TABLE IF NOT EXISTS listings (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  owner_id BIGINT UNSIGNED NOT NULL,
-  item_name VARCHAR(150) NOT NULL,
-  description TEXT NULL,
-  category VARCHAR(80) NOT NULL,
-  rental_price DECIMAL(10, 2) NOT NULL,
-  price_unit VARCHAR(30) NOT NULL DEFAULT 'day',
-  status ENUM('Available', 'Paused') NOT NULL DEFAULT 'Available',
-  image_url VARCHAR(500) NULL,
-  image_alt VARCHAR(255) NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  INDEX idx_listings_owner (owner_id),
-  INDEX idx_listings_category (category),
-  INDEX idx_listings_status (status)
-);
+-- CREATE TABLE IF NOT EXISTS listings (
+--   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+--   owner_id BIGINT UNSIGNED NOT NULL,
+--   item_name VARCHAR(150) NOT NULL,
+--   description TEXT NULL,
+--   category VARCHAR(80) NOT NULL,
+--   rental_price DECIMAL(10, 2) NOT NULL,
+--   price_unit VARCHAR(30) NOT NULL DEFAULT 'day',
+--   status ENUM('Available', 'Paused') NOT NULL DEFAULT 'Available',
+--   image_url VARCHAR(500) NULL,
+--   image_alt VARCHAR(255) NULL,
+--   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--   PRIMARY KEY (id),
+--   INDEX idx_listings_owner (owner_id),
+--   INDEX idx_listings_category (category),
+--   INDEX idx_listings_status (status)
+-- );
 
-CREATE TABLE IF NOT EXISTS rental_earnings (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  listing_id BIGINT UNSIGNED NOT NULL,
-  owner_id BIGINT UNSIGNED NOT NULL,
-  description VARCHAR(255) NOT NULL,
-  amount DECIMAL(10, 2) NOT NULL,
-  rental_date DATE NOT NULL,
-  status ENUM('Pending', 'Completed', 'Paid') NOT NULL DEFAULT 'Completed',
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_earnings_listing
-    FOREIGN KEY (listing_id) REFERENCES listings(id)
-    ON DELETE RESTRICT ON UPDATE CASCADE,
-  INDEX idx_earnings_owner_date (owner_id, rental_date),
-  INDEX idx_earnings_status (status)
-);
+-- CREATE TABLE IF NOT EXISTS rental_earnings (
+--   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+--   listing_id BIGINT UNSIGNED NOT NULL,
+--   owner_id BIGINT UNSIGNED NOT NULL,
+--   description VARCHAR(255) NOT NULL,
+--   amount DECIMAL(10, 2) NOT NULL,
+--   rental_date DATE NOT NULL,
+--   status ENUM('Pending', 'Completed', 'Paid') NOT NULL DEFAULT 'Completed',
+--   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   PRIMARY KEY (id),
+--   CONSTRAINT fk_earnings_listing
+--     FOREIGN KEY (listing_id) REFERENCES listings(id)
+--     ON DELETE RESTRICT ON UPDATE CASCADE,
+--   INDEX idx_earnings_owner_date (owner_id, rental_date),
+--   INDEX idx_earnings_status (status)
+-- );

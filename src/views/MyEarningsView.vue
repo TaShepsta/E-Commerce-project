@@ -10,7 +10,7 @@
         </p>
       </div>
       <RouterLink to="/my-listings" class="secondary-link"
-        >Manage listings <span aria-hidden="true">-></span></RouterLink
+        >Manage listings <span aria-hidden="true">-&gt;</span></RouterLink
       >
     </section>
 

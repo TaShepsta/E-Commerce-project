@@ -30,44 +30,16 @@
       >
         <p v-if="loading">Loading your listings...</p>
         <p v-else-if="loadError">{{ loadError }}</p>
-        <article
+        <ListingCard
           v-else
           v-for="listing in ownerListings"
           :key="listing.id"
-          class="listing-row"
-        >
-          <img :src="listing.image" :alt="listing.imageAlt" />
-          <div class="listing-details">
-            <h3>{{ listing.name }}</h3>
-            <p>{{ categoryName(listing.category) }}</p>
-          </div>
-          <div class="listing-price">
-            <strong>R{{ listing.price }}</strong>
-            <span>/ {{ listing.priceUnit }}</span>
-          </div>
-          <span class="status" :class="listing.status.toLowerCase()">{{
-            listing.status
-          }}</span>
-          <div class="listing-actions">
-            <button
-              type="button"
-              aria-label="View listing"
-              @click="viewListing(listing.name)"
-            >
-              View
-            </button>
-            <button
-              type="button"
-              aria-label="Edit listing"
-              @click="editListing(listing.name)"
-            >
-              Edit
-            </button>
-            <button type="button" @click="toggleListing(listing)">
-              {{ listing.status === "Paused" ? "Resume" : "Pause" }}
-            </button>
-          </div>
-        </article>
+          :listing="listing"
+          :category="categoryName(listing.category)"
+          @view="viewListing"
+          @edit="editListing"
+          @toggle="toggleListing"
+        />
       </div>
     </section>
   </div>
@@ -75,6 +47,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import ListingCard from "../components/ListingCard.vue";
 import { eventCategories } from "../data/products";
 import { listingsApi } from "../services/api";
 import { showToast } from "../utils/notifications";

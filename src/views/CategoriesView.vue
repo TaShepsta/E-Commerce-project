@@ -19,8 +19,8 @@
       </div>
       <div class="hero-art">
         <img
-          src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1100&q=85"
-          alt="Beautiful event table ready for guests"
+          src="https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1100&q=85"
+          alt="Bright balloons and decorations ready for a celebration"
         />
         <div class="hero-note">
           <strong>RENT SMARTER.</strong
@@ -40,24 +40,12 @@
         </p>
       </div>
       <div class="event-grid">
-        <RouterLink
+        <CategoryCard
           v-for="(event, index) in filteredCategories"
           :key="event.slug"
-          :to="`/browse?category=${event.slug}`"
-          class="event-card"
-        >
-          <div class="event-image">
-            <img :src="event.image" :alt="event.name" /><span
-              class="event-number"
-              >0{{ index + 1 }}</span
-            ><span class="card-link">View category</span>
-          </div>
-          <div class="event-info">
-            <h3>{{ event.name }}</h3>
-            <p>{{ event.description }}</p>
-            <span class="browse-label">Browse rentals</span>
-          </div>
-        </RouterLink>
+          :event="event"
+          :index="index"
+        />
       </div>
     </section>
 
@@ -73,6 +61,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import CategoryCard from "../components/CategoryCard.vue";
 import { eventCategories } from "../data/products";
 
 const searchTerm = ref("");
