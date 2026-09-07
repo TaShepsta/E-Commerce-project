@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import authRoutes from './routes/authRoutes.js';
+import listingRoutes from './routes/listingRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -16,6 +18,8 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/listings', listingRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // 404 handler
 app.use((req, res) => {

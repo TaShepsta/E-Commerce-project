@@ -1,10 +1,13 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 
 const router = useRouter()
+const store = useStore()
 const email = ref('')
 const password = ref('')
+const remember = ref(true)
 const error = ref('')
 const showPassword = ref(false)
 const isSubmitting = ref(false)
@@ -17,9 +20,14 @@ const handleSubmit = async () => {
   }
   isSubmitting.value = true
   try {
-    // TODO: replace with a real call to the backend auth endpoint
-    console.log('login attempt', { email: email.value })
+    await store.dispatch('auth/login', {
+      email: email.value,
+      password: password.value,
+      remember: remember.value,
+    })
     router.push('/')
+  } catch (err) {
+    error.value = err.message || 'Unable to log in. Please try again.'
   } finally {
     isSubmitting.value = false
   }
@@ -69,6 +77,11 @@ const handleSubmit = async () => {
                 </button>
               </div>
             </div>
+
+            <label class="remember-row">
+              <input type="checkbox" v-model="remember" />
+              Stay logged in on this device
+            </label>
 
             <p v-if="error" class="form-error" role="alert">{{ error }}</p>
 
@@ -260,6 +273,24 @@ input:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 1px;
   border-radius: 4px;
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin: -6px 0 18px;
+  cursor: pointer;
+}
+
+.remember-row input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--green);
+  cursor: pointer;
 }
 
 .form-error {
