@@ -193,8 +193,9 @@
         <button
           type="submit"
           class="submit-button"
+          :disabled="isLoading"
         >
-          Create Owner Account
+          {{ isLoading ? 'Creating Account...' : 'Create Owner Account' }}
         </button>
 
       </form>
@@ -222,69 +223,101 @@
 <script setup>
 import Swal from 'sweetalert2'
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 
 const errorMessage = ref('')
-
+const isLoading = ref(false)
 
 const form = reactive({
-
   firstName: '',
-
   lastName: '',
-
   email: '',
-
   phone: '',
-
   password: '',
-
   confirmPassword: '',
-
   terms: false
-
 })
 
-
-function createAccount() {
-
+async function createAccount() {
   errorMessage.value = ''
 
-
   if (form.password !== form.confirmPassword) {
-
-    errorMessage.value =
-      'Passwords do not match.'
-
+    errorMessage.value = 'Passwords do not match.'
     return
-
   }
 
+  if (form.password.length < 8) {
+    errorMessage.value = 'Password must be at least 8 characters.'
+    return
+  }
 
-  console.log('Owner account:', {
+  if (!form.terms) {
+    errorMessage.value = 'You must agree to the Terms & Conditions and Privacy Policy.'
+    return
+  }
 
-    firstName: form.firstName,
+  isLoading.value = true
 
-    lastName: form.lastName,
+  try {
+    const response = await fetch('http://localhost:3000/api/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.trim(),
+        password: form.password,
+        role: 'OWNER'
+      })
+    })
 
-    email: form.email,
+    const data = await response.json()
 
-    phone: form.phone,
+    if (!response.ok) {
+      throw new Error(data.message || 'Unable to create owner account.')
+    }
 
-    password: form.password
+    await Swal.fire({
+      title: 'Account created!',
+      text: 'Your Owner account has been created successfully. You can now log in.',
+      icon: 'success',
+      confirmButtonText: 'Go to Login',
+      confirmButtonColor: '#063b2f'
+    })
 
-  })
+    form.firstName = ''
+    form.lastName = ''
+    form.email = ''
+    form.phone = ''
+    form.password = ''
+    form.confirmPassword = ''
+    form.terms = false
 
+    router.push('/login')
 
+  } catch (error) {
+    console.error('Owner signup error:', error)
 
-  Swal.fire({
-    title: "Good job!",
-    text: "Owner account created successfully!",
-    icon: "success"
-  })
+    errorMessage.value =
+      error.message ||
+      'Something went wrong while creating your account. Please try again.'
 
+    await Swal.fire({
+      title: 'Signup failed',
+      text: errorMessage.value,
+      icon: 'error',
+      confirmButtonColor: '#063b2f'
+    })
+
+  } finally {
+    isLoading.value = false
+  }
 }
-
 </script>
 
 
@@ -671,11 +704,21 @@ function createAccount() {
 }
 
 
-.submit-button:hover {
+.submit-button:hover:not(:disabled) {
 
   background: #052e25;
 
   transform: translateY(-1px);
+
+}
+
+.submit-button:disabled {
+
+  opacity: 0.7;
+
+  cursor: not-allowed;
+
+  transform: none;
 
 }
 

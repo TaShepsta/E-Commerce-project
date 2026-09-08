@@ -187,12 +187,13 @@
 
 
         <!-- SUBMIT -->
-        <button
-          type="submit"
-          class="submit-button"
-        >
-          Create Renter Account
-        </button>
+       <button
+  type="submit"
+  class="submit-button"
+  :disabled="isLoading"
+>
+  {{ isLoading ? 'Creating Account...' : 'Create Renter Account' }}
+</button>
 
       </form>
 
@@ -216,72 +217,119 @@
 </template>
 
 
+```vue
 <script setup>
 import Swal from 'sweetalert2'
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 
 const errorMessage = ref('')
-
+const isLoading = ref(false)
 
 const form = reactive({
-
   firstName: '',
-
   lastName: '',
-
   email: '',
-
   phone: '',
-
   password: '',
-
   confirmPassword: '',
-
   terms: false
-
 })
 
-
-function createAccount() {
-
+async function createAccount() {
   errorMessage.value = ''
 
-
+  // Check if passwords match
   if (form.password !== form.confirmPassword) {
-
-    errorMessage.value =
-      'Passwords do not match.'
-
+    errorMessage.value = 'Passwords do not match.'
     return
-
   }
 
+  // Check password length
+  if (form.password.length < 8) {
+    errorMessage.value = 'Password must be at least 8 characters.'
+    return
+  }
 
-  console.log('Renter account:', {
+  // Check terms
+  if (!form.terms) {
+    errorMessage.value =
+      'You must agree to the Terms & Conditions and Privacy Policy.'
+    return
+  }
 
-    firstName: form.firstName,
+  isLoading.value = true
 
-    lastName: form.lastName,
+  try {
+    const response = await fetch(
+      'http://localhost:3000/api/auth/signup',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          email: form.email.trim().toLowerCase(),
+          phone: form.phone.trim(),
+          password: form.password,
+          role: 'RENTER'
+        })
+      }
+    )
 
-    email: form.email,
+    const data = await response.json()
 
-    phone: form.phone,
+    if (!response.ok) {
+      throw new Error(
+        data.message || 'Unable to create renter account.'
+      )
+    }
 
-    password: form.password
+    await Swal.fire({
+      title: 'Account created!',
+      text: 'Your Renter account has been created successfully. You can now log in.',
+      icon: 'success',
+      confirmButtonText: 'Go to Login',
+      confirmButtonColor: '#063b2f'
+    })
 
-  })
+    // Clear form
+    form.firstName = ''
+    form.lastName = ''
+    form.email = ''
+    form.phone = ''
+    form.password = ''
+    form.confirmPassword = ''
+    form.terms = false
 
+    // Go to login
+    router.push('/login')
 
-  Swal.fire({
-    title: "Good job!",
-    text: "Renter account created successfully!",
-    icon: "success"
-  })
+  } catch (error) {
+    console.error('Renter signup error:', error)
 
+    errorMessage.value =
+      error.message ||
+      'Something went wrong while creating your account. Please try again.'
+
+    await Swal.fire({
+      title: 'Signup failed',
+      text: errorMessage.value,
+      icon: 'error',
+      confirmButtonColor: '#063b2f'
+    })
+
+  } finally {
+    isLoading.value = false
+  }
 }
-
 </script>
+```
+
 
 
 <style scoped>
