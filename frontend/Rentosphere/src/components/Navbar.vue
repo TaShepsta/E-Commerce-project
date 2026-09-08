@@ -1,10 +1,56 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+
+const store = useStore()
+const router = useRouter()
 
 const isOpen = ref(false)
+const isUserMenuOpen = ref(false)
+
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
 }
+
+const isAuthenticated = computed(() => store.getters['auth/isAuthenticated'])
+const user = computed(() => store.state.auth.user)
+
+const initials = computed(() => {
+  const name = user.value?.name || ''
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('') || '?'
+})
+
+const toggleUserMenu = () => {
+  isUserMenuOpen.value = !isUserMenuOpen.value
+}
+
+const closeUserMenu = () => {
+  isUserMenuOpen.value = false
+}
+
+const handleLogout = () => {
+  closeUserMenu()
+  isOpen.value = false
+  store.dispatch('auth/logout')
+  router.push('/')
+}
+
+const userMenuRoot = ref(null)
+
+const handleOutsideClick = (event) => {
+  if (userMenuRoot.value && !userMenuRoot.value.contains(event.target)) {
+    isUserMenuOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', handleOutsideClick))
+onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
 </script>
 
 <template>
@@ -24,14 +70,43 @@ const toggleMenu = () => {
         <router-link to="/about" class="nav-link" @click="isOpen = false">About Us</router-link>
 
         <div class="nav-actions-mobile">
-          <router-link to="/login" class="link-login" @click="isOpen = false">Log in</router-link>
-          <router-link to="/signup" class="btn btn-primary" @click="isOpen = false">Sign up</router-link>
+          <template v-if="isAuthenticated">
+            <span class="link-login mobile-user-name">{{ user?.name || 'My Account' }}</span>
+            <button type="button" class="btn btn-primary" @click="handleLogout">Log out</button>
+          </template>
+          <template v-else>
+            <router-link to="/login" class="link-login" @click="isOpen = false">Log in</router-link>
+            <router-link to="/signup" class="btn btn-primary" @click="isOpen = false">Sign up</router-link>
+          </template>
         </div>
       </nav>
 
       <div class="navbar-actions">
-        <router-link to="/login" class="link-login">Log in</router-link>
-        <router-link to="/signup" class="btn btn-primary">Sign up</router-link>
+        <template v-if="!isAuthenticated">
+          <router-link to="/login" class="link-login">Log in</router-link>
+          <router-link to="/signup" class="btn btn-primary">Sign up</router-link>
+        </template>
+
+        <div v-else class="user-menu" ref="userMenuRoot">
+          <button
+            type="button"
+            class="user-icon-btn"
+            @click.stop="toggleUserMenu"
+            :aria-expanded="isUserMenuOpen"
+            aria-haspopup="true"
+            :aria-label="`Account menu for ${user?.name || 'your account'}`"
+          >
+            <span class="avatar-circle">{{ initials }}</span>
+          </button>
+
+          <div class="user-dropdown" v-if="isUserMenuOpen">
+            <div class="dropdown-header">
+              <span class="dropdown-name">{{ user?.name }}</span>
+              <span class="dropdown-email">{{ user?.email }}</span>
+            </div>
+            <button type="button" class="dropdown-item dropdown-logout" @click="handleLogout">Log out</button>
+          </div>
+        </div>
       </div>
 
       <button class="menu-toggle" @click="toggleMenu" aria-label="Toggle menu">
@@ -134,6 +209,101 @@ const toggleMenu = () => {
 .link-login {
   font-weight: 500;
   font-size: 0.95rem;
+}
+
+.mobile-user-name {
+  color: var(--color-text-muted, #5b6660);
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-icon-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-primary, #12402f);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s ease;
+}
+
+.user-icon-btn:hover .avatar-circle {
+  opacity: 0.85;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 220px;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e3e5e1);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  z-index: 60;
+}
+
+.dropdown-header {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--color-border, #e3e5e1);
+  margin-bottom: 6px;
+}
+
+.dropdown-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--color-text);
+}
+
+.dropdown-email {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #5b6660);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.dropdown-item:hover {
+  background: var(--color-surface-alt, #f4f4f2);
+}
+
+.dropdown-logout {
+  color: #b3261e;
 }
 
 .menu-toggle {
