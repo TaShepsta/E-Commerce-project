@@ -31,6 +31,7 @@ import HowItWorksView from "../views/HowItWorksView.vue";
 import BrowseView from "../views/BrowseView.vue";
 import MyEarningsView from "../views/MyEarningsView.vue";
 import MyListingsView from "../views/MyListingsView.vue";
+import BecomeAnOwner from "../views/BecomeAnOwner.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,7 +80,7 @@ const router = createRouter({
     {
       path: "/become-owner",
       name: "become-owner",
-      component: HomeView,
+      component: BecomeAnOwner,
     },
     // {
     //   path: '/become-owner',

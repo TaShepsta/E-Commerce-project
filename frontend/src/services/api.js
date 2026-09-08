@@ -28,6 +28,11 @@ async function request(path, options = {}) {
 
 export const listingsApi = {
   getAll: () => request("/listings"),
+  create: (listing) =>
+    request("/listings", {
+      method: "POST",
+      body: JSON.stringify(listing),
+    }),
   update: (id, listing) =>
     request(`/listings/${id}`, {
       method: "PUT",
