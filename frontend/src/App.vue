@@ -92,7 +92,14 @@ import { showToast } from "./utils/notifications";
 
 const route = useRoute();
 const menuOpen = ref(false);
-const isApprovedOwner = ref(true); //Change this to true when you want to test the owner
+const ownerApprovedKey = "rentosphere-owner-approved";
+const isApprovedOwner = ref(false);
+
+function syncOwnerState() {
+  isApprovedOwner.value =
+    typeof window !== "undefined" &&
+    window.localStorage.getItem(ownerApprovedKey) === "true";
+}
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
@@ -111,8 +118,15 @@ function handleAuth(action) {
 }
 
 watch(() => route.fullPath, closeMenu);
-onMounted(() => document.addEventListener("keydown", handleEscape));
-onUnmounted(() => document.removeEventListener("keydown", handleEscape));
+onMounted(() => {
+  syncOwnerState();
+  document.addEventListener("keydown", handleEscape);
+  window.addEventListener("owner-state-changed", syncOwnerState);
+});
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleEscape);
+  window.removeEventListener("owner-state-changed", syncOwnerState);
+});
 </script>
 
 <template>

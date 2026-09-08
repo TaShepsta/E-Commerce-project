@@ -72,15 +72,11 @@
       </div>
 
       <div class="form-group">
-        <label for="image">Product Photo *</label>
-        <input
-          id="image"
-          type="file"
-          @change="onFile"
-          accept="image/*"
-          required
-        />
-        <small style="color: #64748b">Required for safety evaluation</small>
+        <label for="image">Product Photo</label>
+        <input id="image" type="file" @change="onFile" accept="image/*" />
+        <small style="color: #64748b"
+          >Optional — you can add a photo later.</small
+        >
       </div>
 
       <div class="commission-box">

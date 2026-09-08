@@ -1,6 +1,13 @@
 <template>
   <article class="listing-row">
-    <img :src="listing.image" :alt="listing.imageAlt" />
+    <div class="listing-thumb">
+      <img
+        v-if="listing.image"
+        :src="listing.image"
+        :alt="listing.imageAlt || listing.name"
+      />
+      <div v-else class="listing-placeholder">No Image</div>
+    </div>
     <div class="listing-details">
       <h3>{{ listing.name }}</h3>
       <p>{{ category }}</p>
@@ -16,19 +23,26 @@
       <button
         type="button"
         aria-label="View listing"
-        @click="$emit('view', listing.name)"
+        @click="$emit('view', listing)"
       >
         View
       </button>
       <button
         type="button"
         aria-label="Edit listing"
-        @click="$emit('edit', listing.name)"
+        @click="$emit('edit', listing)"
       >
         Edit
       </button>
       <button type="button" @click="$emit('toggle', listing)">
         {{ listing.status === "Paused" ? "Resume" : "Pause" }}
+      </button>
+      <button
+        type="button"
+        class="danger-button"
+        @click="$emit('delete', listing)"
+      >
+        Delete
       </button>
     </div>
   </article>
@@ -46,7 +60,7 @@ defineProps({
   },
 });
 
-defineEmits(["view", "edit", "toggle"]);
+defineEmits(["view", "edit", "toggle", "delete"]);
 </script>
 
 <style scoped>
@@ -58,11 +72,26 @@ defineEmits(["view", "edit", "toggle"]);
   padding: 18px 0;
   border-bottom: 1px solid #e4e0d7;
 }
-.listing-row > img {
+.listing-thumb {
   width: 88px;
   height: 72px;
   border-radius: 7px;
+  overflow: hidden;
+  background: #f7f3ea;
+}
+.listing-thumb img,
+.listing-placeholder {
+  width: 100%;
+  height: 100%;
+  display: block;
   object-fit: cover;
+}
+.listing-placeholder {
+  display: grid;
+  place-items: center;
+  color: #68717a;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 .listing-details h3 {
   margin: 0 0 5px;
@@ -107,6 +136,11 @@ defineEmits(["view", "edit", "toggle"]);
   font-size: 0.75rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+.danger-button {
+  color: #8f1d1d;
+  border-color: #e6b1b1;
 }
 @media (max-width: 850px) {
   .listing-row {
