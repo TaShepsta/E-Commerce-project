@@ -76,9 +76,10 @@ function handleRentNow() {
   top: 10px;
   right: 12px;
   border: none;
-  background: none;
+  background: #fff;
   font-size: 20px;
-  cursor: pointer
+  cursor: pointer;
+  border-radius: 8px;
 }
 .controls {
   display: flex;
@@ -95,13 +96,14 @@ function handleRentNow() {
   margin-top: 16px
 }
 .btn-primary {
-  background: #111;
+  background: var(--navy);
   color: white;
   padding: 10px 16px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  flex: 1
+  flex: 1;
+  font-size: 13px;
 }
 .btn-secondary {
   border: 1px solid #111;
