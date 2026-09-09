@@ -122,5 +122,24 @@ export default {
       clearPersistedAuth()
       commit('CLEAR_AUTH')
     },
+
+    // Backend always responds with a generic success message here
+    // (it never reveals whether the email is registered), so the
+    // component doesn't need to branch on the result — just show it.
+    async forgotPassword(_ctx, { email }) {
+      const data = await apiRequest('/auth/forgot-password', {
+        method: 'POST',
+        body: { email },
+      })
+      return data.message
+    },
+
+    async resetPassword(_ctx, { token, password }) {
+      const data = await apiRequest('/auth/reset-password', {
+        method: 'POST',
+        body: { token, password },
+      })
+      return data.message
+    },
   },
 }

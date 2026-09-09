@@ -4,6 +4,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AboutView from '../views/AboutView.vue'
 import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
 
 // Teammates' pages — swap these for their real files as they build them.
 // Until then, PlaceholderView keeps every route working inside the
@@ -57,6 +59,16 @@ const router = createRouter({
       path: '/signup',
       name: 'signup',
       component: SignupView,
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: ForgotPasswordView,
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: ResetPasswordView,
     },
   ],
 })

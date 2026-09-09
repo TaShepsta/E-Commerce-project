@@ -7,8 +7,16 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('owner', 'renter', 'admin') NOT NULL DEFAULT 'renter',
+    reset_token_hash VARCHAR(255) NULL,
+    reset_token_expires DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- If your `users` table already existed before the forgot-password feature,
+-- CREATE TABLE IF NOT EXISTS above won't add the new columns. Run this once
+-- against an existing database instead (safe to skip on a fresh database):
+-- ALTER TABLE users ADD COLUMN reset_token_hash VARCHAR(255) NULL;
+-- ALTER TABLE users ADD COLUMN reset_token_expires DATETIME NULL;
 
 -- A product an owner has listed for rent.
 -- Starts 'pending' until an admin evaluates and approves it (see business brief:
