@@ -7,9 +7,9 @@
 
       <div class="detail-image-wrap">
         <img
-          v-if="product.image_url"
-          :src="product.image_url"
-          :alt="product.title"
+          v-if="product.image_url || product.image"
+          :src="product.image_url || product.image"
+          :alt="product.imageAlt || product.title || product.name"
         />
         <div v-else class="detail-image-placeholder">No Image</div>
       </div>

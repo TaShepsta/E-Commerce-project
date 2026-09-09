@@ -10,49 +10,18 @@ function markOwnerApproved() {
   );
 }
 
-function ensureListingImage(listing) {
-  if (!listing || listing.image) {
-    return Promise.resolve(listing);
-  }
-
-  if (typeof window === "undefined") {
-    return Promise.resolve(listing);
-  }
-
-  const fileInput = document.getElementById("image");
-  const file = fileInput && fileInput.files && fileInput.files[0];
-
-  if (!file) {
-    return Promise.resolve(listing);
-  }
-
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      resolve({
-        ...listing,
-        image: reader.result,
-        imageAlt: listing.name || file.name,
-      });
-    };
-
-    reader.onerror = () => {
-      reject(new Error("Could not read the uploaded image."));
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
-
 async function request(path, options = {}) {
+  const isFormData = options.body instanceof FormData;
+
   let response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers: isFormData
+        ? options.headers
+        : {
+            "Content-Type": "application/json",
+            ...options.headers,
+          },
       ...options,
     });
   } catch {
@@ -64,7 +33,9 @@ async function request(path, options = {}) {
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(
-      error.message || `Request failed with status ${response.status}`,
+      error.message ||
+        error.errors?.join(". ") ||
+        `Request failed with status ${response.status}`,
     );
   }
 
@@ -73,21 +44,20 @@ async function request(path, options = {}) {
 
 export const listingsApi = {
   getAll: () => request("/listings"),
-  create: async (listing) => {
-    const listingWithImage = await ensureListingImage(listing);
+  create: async (payload) => {
     const createdListing = await request("/listings", {
       method: "POST",
-      body: JSON.stringify(listingWithImage),
+      body: payload,
     });
 
     markOwnerApproved();
 
     return createdListing;
   },
-  update: (id, listing) =>
+  update: (id, payload) =>
     request(`/listings/${id}`, {
       method: "PUT",
-      body: JSON.stringify(listing),
+      body: payload,
     }),
   remove: (id) => request(`/listings/${id}`, { method: "DELETE" }),
 };

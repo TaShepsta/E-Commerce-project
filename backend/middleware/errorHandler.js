@@ -10,9 +10,11 @@ export function errorHandler(error, req, res, next) {
   const isDatabaseError =
     error.code?.startsWith("ECONN") || error.code?.startsWith("ER_");
 
+  const message = isDatabaseError
+    ? "The backend is running, but it cannot connect to MySQL. Check backend/.env and make sure MySQL is running."
+    : error.message || "Internal server error";
+
   res.status(error.status || 500).json({
-    message: isDatabaseError
-      ? "The backend is running, but it cannot connect to MySQL. Check backend/.env and make sure MySQL is running."
-      : "Internal server error",
+    message,
   });
 }

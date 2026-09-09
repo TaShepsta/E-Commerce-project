@@ -1,24 +1,23 @@
-import Toastify from "toastify-js";
-import "toastify-js/src/toastify.css";
+import Swal from "sweetalert2";
 
 export function showToast(message, type = "info") {
-  const colors = {
-    success: "#0b3b32",
-    error: "#b42318",
-    info: "#344054",
-  };
+  const toastType =
+    type === "error" ? "error" : type === "success" ? "success" : "info";
 
-  Toastify({
-    text: message,
-    duration: 3000,
-    gravity: "top",
-    position: "right",
-    close: true,
-    stopOnFocus: true,
-    style: {
-      background: colors[type] || colors.info,
-      borderRadius: "8px",
-      boxShadow: "0 8px 24px rgba(17, 24, 39, 0.18)",
+  return Swal.fire({
+    icon: toastType,
+    title: message,
+    toast: true,
+    position: "top-end",
+    timer: 2800,
+    showConfirmButton: false,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
     },
-  }).showToast();
+    customClass: {
+      popup: "rentosphere-toast",
+    },
+  });
 }

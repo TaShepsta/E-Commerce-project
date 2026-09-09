@@ -9,9 +9,6 @@
           its way.
         </p>
       </div>
-      <RouterLink to="/my-listings" class="secondary-link"
-        >Manage listings <span aria-hidden="true">-&gt;</span></RouterLink
-      >
     </section>
 
     <section class="earnings-content">
@@ -52,18 +49,17 @@
           <p>
             Monthly rental income after completed bookings and platform fees.
           </p>
-          <strong class="trend-change"
-            >+18.4% <small>vs. last month</small></strong
-          >
         </div>
         <div
           class="chart"
           role="img"
           aria-label="Bar chart showing monthly earnings from April to September 2026"
         >
-          <div class="chart-gridline chart-gridline-top"><span>R800</span></div>
+          <div class="chart-gridline chart-gridline-top">
+            <span>{{ formatCurrency(chartMax) }}</span>
+          </div>
           <div class="chart-gridline chart-gridline-middle">
-            <span>R400</span>
+            <span>{{ formatCurrency(chartMax / 2) }}</span>
           </div>
           <div class="chart-gridline chart-gridline-bottom">
             <span>R0</span>
@@ -123,9 +119,16 @@ const history = ref([]);
 const loading = ref(true);
 const loadError = ref("");
 
-const chartMax = computed(() =>
-  Math.max(...monthlyEarnings.value.map((month) => month.amount), 800),
-);
+const chartMax = computed(() => {
+  const amounts = monthlyEarnings.value.map(
+    (month) => Number(month.amount) || 0,
+  );
+  return Math.max(...amounts, 1);
+});
+
+function formatCurrency(amount) {
+  return `R${Number(amount).toFixed(0)}`;
+}
 
 async function loadEarnings() {
   loading.value = true;

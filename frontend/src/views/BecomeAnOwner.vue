@@ -5,6 +5,17 @@
       <p>Turn your unused items into a source of income</p>
     </div>
 
+    <div v-if="!isApprovedOwner" class="safety-alert">
+      <div class="safety-icon" aria-hidden="true">&#128736;</div>
+      <div>
+        <strong>Approval Required</strong>
+        <p>
+          Your owner request is pending approval. Once approved, you will be
+          able to post listings and upload product images.
+        </p>
+      </div>
+    </div>
+
     <div class="safety-alert">
       <div class="safety-icon" aria-hidden="true">&#128737;</div>
       <div>
@@ -73,10 +84,19 @@
 
       <div class="form-group">
         <label for="image">Product Photo</label>
-        <input id="image" type="file" @change="onFile" accept="image/*" />
+        <input
+          id="image"
+          type="file"
+          @change="onFile"
+          accept="image/jpeg,image/png,image/webp"
+        />
         <small style="color: #64748b"
           >Optional — you can add a photo later.</small
         >
+      </div>
+
+      <div v-if="imagePreview" class="image-preview-wrap">
+        <img :src="imagePreview" :alt="form.title || 'Product preview'" />
       </div>
 
       <div class="commission-box">
@@ -108,10 +128,12 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { listingsApi } from "../services/api";
 import { showToast } from "../utils/notifications";
 
+const ownerApprovedKey = "rentosphere-owner-approved";
+const ownerApproved = ref(false);
 const form = reactive({
   title: "",
   category: "DIY & Projects",
@@ -120,37 +142,74 @@ const form = reactive({
   description: "",
 });
 const image = ref(null);
+const imagePreview = ref("");
 const loading = ref(false);
 const result = ref("");
 
+const isApprovedOwner = ref(false);
+
+const syncOwnerState = () => {
+  isApprovedOwner.value =
+    typeof window !== "undefined" &&
+    window.localStorage.getItem(ownerApprovedKey) === "true";
+};
+
 const onFile = (event) => {
-  image.value = event.target.files[0] || null;
+  const selectedFile = event.target.files[0] || null;
+  image.value = selectedFile;
+  imagePreview.value = selectedFile ? URL.createObjectURL(selectedFile) : "";
 };
 
 const submitProduct = async () => {
+  if (!isApprovedOwner.value) {
+    showToast(
+      "Your owner request is still pending approval. Please wait before posting a listing.",
+      "info",
+    );
+    return;
+  }
+
   loading.value = true;
   result.value = "";
+
   try {
-    await listingsApi.create({
-      name: form.title,
-      category: form.category,
-      price: form.price,
-      priceUnit: "day",
-      description: `Location: ${form.location}\n\n${form.description}`,
-      status: "Available",
-    });
+    const payload = new FormData();
+    payload.append("name", form.title);
+    payload.append("category", form.category);
+    payload.append("price", String(form.price));
+    payload.append("priceUnit", "day");
+    payload.append(
+      "description",
+      `Location: ${form.location}\n\n${form.description}`,
+    );
+    payload.append("status", "Available");
+    payload.append("imageAlt", form.title || "Product image");
+
+    if (image.value) {
+      payload.append("image", image.value);
+    }
+
+    await listingsApi.create(payload);
+
     result.value = "Your product has been submitted for safety evaluation.";
     showToast("Listing submitted successfully.", "success");
     form.title = "";
     form.location = "";
     form.description = "";
+    form.category = "DIY & Projects";
+    form.price = 150;
     image.value = null;
+    imagePreview.value = "";
   } catch (error) {
     showToast(error.message, "error");
   } finally {
     loading.value = false;
   }
 };
+
+onMounted(() => {
+  syncOwnerState();
+});
 </script>
 
 <style scoped>

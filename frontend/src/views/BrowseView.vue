@@ -89,10 +89,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import axios from "axios";
-import Swal from "sweetalert2";
 import ProductDetail from "../components/ProductDetail.vue";
 import { eventCategories } from "../data/products";
+import { listingsApi } from "../services/api";
+import { showToast } from "../utils/notifications";
 
 const selectedProduct = ref(null);
 const products = ref([]);
@@ -105,20 +105,27 @@ const normalizeCategoryName = (category) => {
   );
 };
 
+const normalizeListing = (listing) => {
+  const description = listing.description || "";
+  const locationMatch = description.match(/^Location:\s*([^\n]+)/i);
+
+  return {
+    ...listing,
+    title: listing.name,
+    image_url: listing.image || listing.image_url || "",
+    image: listing.image || listing.image_url || "",
+    location: locationMatch ? locationMatch[1].trim() : "",
+    price_per_day: Number(listing.price ?? listing.price_per_day ?? 0),
+    status: listing.status === "Available" ? "Safety Verified" : listing.status,
+  };
+};
+
 onMounted(async () => {
   try {
-    const res = await axios.get("/api/products?status=Safety%20Verified");
-    products.value = Array.isArray(res.data) ? res.data : [];
-  } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "Failed to load products",
-      text:
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "backend not running",
-      confirmButtonColor: "#0b3b32",
-    });
+    const data = await listingsApi.getAll();
+    products.value = Array.isArray(data) ? data.map(normalizeListing) : [];
+  } catch (error) {
+    showToast(error.message, "error");
   }
 });
 

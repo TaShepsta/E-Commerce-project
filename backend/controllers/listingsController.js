@@ -6,11 +6,25 @@ import {
   updateListing,
 } from "../models/listingsModel.js";
 
-const ownerId = () => Number(process.env.OWNER_ID || 1);
+const fallbackOwnerId = () => Number(process.env.OWNER_ID || 1);
+
+function getOwnerId(req) {
+  const headerOwnerId =
+    req.headers["x-user-id"] ||
+    req.headers["x-owner-id"] ||
+    req.user?.id ||
+    fallbackOwnerId();
+
+  const parsedOwnerId = Number(headerOwnerId);
+
+  return Number.isInteger(parsedOwnerId) && parsedOwnerId > 0
+    ? parsedOwnerId
+    : fallbackOwnerId();
+}
 
 export async function listListings(req, res, next) {
   try {
-    res.json(await getListings(ownerId()));
+    res.json(await getListings(getOwnerId(req)));
   } catch (error) {
     next(error);
   }
@@ -18,7 +32,7 @@ export async function listListings(req, res, next) {
 
 export async function showListing(req, res, next) {
   try {
-    const listing = await getListingById(req.params.id, ownerId());
+    const listing = await getListingById(req.params.id, getOwnerId(req));
     if (!listing) return res.status(404).json({ message: "Listing not found" });
     res.json(listing);
   } catch (error) {
@@ -28,7 +42,13 @@ export async function showListing(req, res, next) {
 
 export async function addListing(req, res, next) {
   try {
-    const listing = await createListing(req.body, ownerId());
+    const listing = await createListing(
+      {
+        ...req.body,
+        file: req.file || null,
+      },
+      getOwnerId(req),
+    );
     res.status(201).json(listing);
   } catch (error) {
     next(error);
@@ -37,7 +57,14 @@ export async function addListing(req, res, next) {
 
 export async function editListing(req, res, next) {
   try {
-    const listing = await updateListing(req.params.id, req.body, ownerId());
+    const listing = await updateListing(
+      req.params.id,
+      {
+        ...req.body,
+        file: req.file || null,
+      },
+      getOwnerId(req),
+    );
     if (!listing) return res.status(404).json({ message: "Listing not found" });
     res.json(listing);
   } catch (error) {
@@ -47,7 +74,7 @@ export async function editListing(req, res, next) {
 
 export async function removeListing(req, res, next) {
   try {
-    const removed = await deleteListing(req.params.id, ownerId());
+    const removed = await deleteListing(req.params.id, getOwnerId(req));
     if (!removed) return res.status(404).json({ message: "Listing not found" });
     res.status(204).send();
   } catch (error) {

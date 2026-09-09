@@ -42,6 +42,26 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+app.get("/api/listings/:id/image", async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT image_data, image_mime_type FROM listings WHERE id = ?",
+      [req.params.id],
+    );
+
+    const listing = rows[0];
+
+    if (!listing || !listing.image_data) {
+      return res.status(404).json({ message: "Listing image not found" });
+    }
+
+    res.setHeader("Content-Type", listing.image_mime_type || "image/jpeg");
+    res.send(listing.image_data);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/api/products", async (req, res, next) => {
   try {
     const ownerId = Number(process.env.OWNER_ID || 1);

@@ -24,6 +24,117 @@
       </div>
 
       <div
+        v-if="isAddListingOpen"
+        class="edit-modal-backdrop"
+        @click.self="closeAddListingModal"
+      >
+        <div class="edit-modal" role="dialog" aria-modal="true">
+          <div class="modal-header">
+            <h3>Add listing</h3>
+            <button
+              type="button"
+              class="close-icon"
+              @click="closeAddListingModal"
+            >
+              ×
+            </button>
+          </div>
+
+          <form class="edit-form" @submit.prevent="submitNewListing">
+            <div class="form-grid">
+              <label>
+                <span>Item name</span>
+                <input v-model="newListingForm.name" type="text" required />
+              </label>
+
+              <label>
+                <span>Category</span>
+                <select v-model="newListingForm.category" required>
+                  <option
+                    v-for="category in categoryOptions"
+                    :key="category"
+                    :value="category"
+                  >
+                    {{ category }}
+                  </option>
+                </select>
+              </label>
+
+              <label>
+                <span>Rental price</span>
+                <input
+                  v-model.number="newListingForm.price"
+                  type="number"
+                  min="0"
+                  required
+                />
+              </label>
+
+              <label>
+                <span>Price unit</span>
+                <select v-model="newListingForm.priceUnit" required>
+                  <option value="day">Per day</option>
+                  <option value="week">Per week</option>
+                  <option value="month">Per month</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Status</span>
+                <select v-model="newListingForm.status" required>
+                  <option value="Available">Available</option>
+                  <option value="Paused">Paused</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Image alt text</span>
+                <input
+                  v-model="newListingForm.imageAlt"
+                  type="text"
+                  placeholder="Describe the image"
+                />
+              </label>
+
+              <label class="full-width">
+                <span>Image upload</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  @change="handleAddListingImage"
+                />
+              </label>
+
+              <label class="full-width">
+                <span>Description</span>
+                <textarea v-model="newListingForm.description" rows="4" />
+              </label>
+            </div>
+
+            <div v-if="newListingPreview" class="image-preview-wrap">
+              <img
+                :src="newListingPreview"
+                :alt="newListingForm.imageAlt || 'Listing preview'"
+              />
+            </div>
+
+            <div class="modal-actions">
+              <button
+                type="button"
+                class="secondary-button"
+                @click="closeAddListingModal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="primary-button">
+                Create listing
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div
         class="listing-table"
         role="region"
         aria-label="Your rental listings"
@@ -128,19 +239,28 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
 import ListingCard from "../components/ListingCard.vue";
 import { eventCategories } from "../data/products";
 import { listingsApi } from "../services/api";
 import { showToast } from "../utils/notifications";
-
-const router = useRouter();
 
 const ownerListings = ref([]);
 const loading = ref(true);
 const loadError = ref("");
 const editingListing = ref(null);
 const editDraft = ref(null);
+const isAddListingOpen = ref(false);
+const newListingForm = ref({
+  name: "",
+  description: "",
+  category: eventCategories[0]?.name || "",
+  price: 0,
+  priceUnit: "day",
+  status: "Available",
+  imageAlt: "",
+});
+const newListingImage = ref(null);
+const newListingPreview = ref("");
 const categoryOptions = eventCategories.map((category) => category.name);
 const activeListings = computed(() =>
   ownerListings.value.filter((listing) => listing.status === "Available"),
@@ -165,7 +285,38 @@ function categoryName(slug) {
 }
 
 function addListing() {
-  router.push("/become-owner");
+  openAddListingModal();
+}
+
+function openAddListingModal() {
+  isAddListingOpen.value = true;
+}
+
+function closeAddListingModal() {
+  isAddListingOpen.value = false;
+  newListingForm.value = {
+    name: "",
+    description: "",
+    category: eventCategories[0]?.name || "",
+    price: 0,
+    priceUnit: "day",
+    status: "Available",
+    imageAlt: "",
+  };
+  newListingImage.value = null;
+  newListingPreview.value = "";
+}
+
+function handleAddListingImage(event) {
+  const file = event.target.files?.[0] || null;
+  newListingImage.value = file;
+
+  if (file) {
+    newListingPreview.value = URL.createObjectURL(file);
+    return;
+  }
+
+  newListingPreview.value = "";
 }
 
 function viewListing(listing) {
@@ -252,6 +403,45 @@ async function saveEditedListing() {
 
     showToast(`${updatedListing.name} was updated successfully.`, "success");
     closeEditListing();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+async function submitNewListing() {
+  const trimmedName = newListingForm.value.name.trim();
+
+  if (
+    !trimmedName ||
+    !newListingForm.value.category ||
+    !Number(newListingForm.value.price)
+  ) {
+    showToast(
+      "Please complete the listing name, category, and price.",
+      "error",
+    );
+    return;
+  }
+
+  try {
+    const payload = new FormData();
+    payload.append("name", trimmedName);
+    payload.append("description", newListingForm.value.description || "");
+    payload.append("category", newListingForm.value.category);
+    payload.append("price", String(Number(newListingForm.value.price)));
+    payload.append("priceUnit", newListingForm.value.priceUnit);
+    payload.append("status", newListingForm.value.status);
+    payload.append("imageAlt", newListingForm.value.imageAlt || trimmedName);
+
+    if (newListingImage.value) {
+      payload.append("image", newListingImage.value);
+    }
+
+    await listingsApi.create(payload);
+
+    showToast("Listing created successfully.", "success");
+    closeAddListingModal();
+    await loadListings();
   } catch (error) {
     showToast(error.message, "error");
   }
@@ -434,6 +624,8 @@ h2 {
 
 .edit-modal {
   width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
   background: white;
   border-radius: 18px;
   border: 1px solid #e4e0d7;
