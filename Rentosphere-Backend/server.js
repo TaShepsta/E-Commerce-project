@@ -3,7 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import pool from './db.js'
 import authRoutes from './routes/auth.js'
-
+import chatRoutes from './routes/chat.js'
 dotenv.config()
 
 const app = express()
@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000
 
 app.use(cors())
 app.use(express.json())
-
+app.use('/api/chat', chatRoutes)
 
 // Authentication
 app.use('/api/auth', authRoutes)
