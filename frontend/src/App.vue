@@ -32,11 +32,13 @@ function handleAuth(action) {
 }
 
 watch(() => route.fullPath, closeMenu);
+
 onMounted(() => {
   syncOwnerState();
   document.addEventListener("keydown", handleEscape);
   window.addEventListener("owner-state-changed", syncOwnerState);
 });
+
 onUnmounted(() => {
   document.removeEventListener("keydown", handleEscape);
   window.removeEventListener("owner-state-changed", syncOwnerState);
@@ -45,7 +47,6 @@ onUnmounted(() => {
 
 <template>
   <div id="app">
-    <!-- NAVIGATION -->
     <header class="navbar">
       <RouterLink to="/" class="logo-link">
         <img :src="logo" alt="Rentosphere logo" />
@@ -59,7 +60,9 @@ onUnmounted(() => {
         aria-label="Toggle navigation menu"
         @click="toggleMenu"
       >
-        <span></span><span></span><span></span>
+        <span></span>
+        <span></span>
+        <span></span>
       </button>
 
       <nav
@@ -67,9 +70,9 @@ onUnmounted(() => {
         class="desktop-nav"
         :class="{ 'is-open': menuOpen }"
       >
-        <RouterLink to="/" @click="closeMenu"> Home </RouterLink>
+        <RouterLink to="/" @click="closeMenu">Home</RouterLink>
 
-        <RouterLink to="/browse" @click="closeMenu"> Browse </RouterLink>
+        <RouterLink to="/browse" @click="closeMenu">Browse</RouterLink>
 
         <RouterLink to="/categories" @click="closeMenu">
           Categories
@@ -94,7 +97,9 @@ onUnmounted(() => {
             Become an Owner
           </RouterLink>
 
-          <RouterLink to="/about" @click="closeMenu"> About Us </RouterLink>
+          <RouterLink to="/about" @click="closeMenu">
+            About Us
+          </RouterLink>
         </template>
       </nav>
 
@@ -109,7 +114,6 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <!-- PAGE CONTENT -->
     <main>
       <RouterView />
     </main>

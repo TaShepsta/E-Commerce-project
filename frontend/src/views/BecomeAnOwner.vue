@@ -174,16 +174,12 @@ const submitProduct = async () => {
 
   try {
     const payload = new FormData();
-    payload.append("name", form.title);
+
+    payload.append("title", form.title);
     payload.append("category", form.category);
-    payload.append("price", String(form.price));
-    payload.append("priceUnit", "day");
-    payload.append(
-      "description",
-      `Location: ${form.location}\n\n${form.description}`,
-    );
-    payload.append("status", "Available");
-    payload.append("imageAlt", form.title || "Product image");
+    payload.append("dailyPrice", String(form.price));
+    payload.append("location", form.location);
+    payload.append("description", form.description);
 
     if (image.value) {
       payload.append("image", image.value);

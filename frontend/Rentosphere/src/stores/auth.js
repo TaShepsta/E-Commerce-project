@@ -1,145 +1,88 @@
-const TOKEN_KEY = 'rentosphere_token'
-const USER_KEY = 'rentosphere_user'
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const OWNER_APPROVED_KEY = "rentosphere-owner-approved";
+const TOKEN_KEY = "rentosphere_token";
 
-function loadToken() {
-  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || null
+function markOwnerApproved() {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(OWNER_APPROVED_KEY, "true");
+  window.dispatchEvent(
+    new CustomEvent("owner-state-changed", { detail: true }),
+  );
 }
 
-function loadUser() {
-  const raw = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY)
-  if (!raw) return null
+function getToken() {
+  if (typeof window === "undefined") return null;
+
+  return (
+    window.localStorage.getItem(TOKEN_KEY) ||
+    window.sessionStorage.getItem(TOKEN_KEY) ||
+    null
+  );
+}
+
+async function request(path, options = {}) {
+  const isFormData = options.body instanceof FormData;
+  const token = getToken();
+
+  const headers = {
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+
+  let response;
+
   try {
-    return JSON.parse(raw)
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
   } catch {
-    return null
-  }
-}
-
-function persistAuth({ token, user, remember }) {
-  const storage = remember ? localStorage : sessionStorage
-  const other = remember ? sessionStorage : localStorage
-  storage.setItem(TOKEN_KEY, token)
-  storage.setItem(USER_KEY, JSON.stringify(user))
-  // Make sure we don't leave a stale copy in the other storage.
-  other.removeItem(TOKEN_KEY)
-  other.removeItem(USER_KEY)
-}
-
-function clearPersistedAuth() {
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(USER_KEY)
-  sessionStorage.removeItem(TOKEN_KEY)
-  sessionStorage.removeItem(USER_KEY)
-}
-
-// Small helper so every call talks to the backend the same way and
-// surfaces the backend's own error message on failure.
-async function apiRequest(path, { method = 'GET', body, token } = {}) {
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  })
-
-  const data = await res.json().catch(() => ({}))
-
-  if (!res.ok) {
-    throw new Error(data.message || 'Something went wrong. Please try again.')
+    throw new Error(
+      "Unable to connect to the backend. Start it with npm run backend.",
+    );
   }
 
-  return data
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+
+    throw new Error(
+      error.message ||
+        error.errors?.join(". ") ||
+        `Request failed with status ${response.status}`,
+    );
+  }
+
+  return response.status === 204 ? null : response.json();
 }
 
-export default {
-  namespaced: true,
+export const listingsApi = {
+  getAll: () => request("/listings"),
 
-  state: () => ({
-    token: loadToken(),
-    user: loadUser(),
-  }),
+  create: async (payload) => {
+    const createdListing = await request("/listings", {
+      method: "POST",
+      body: payload,
+    });
 
-  getters: {
-    isAuthenticated: (state) => !!state.token,
+    markOwnerApproved();
+
+    return createdListing;
   },
 
-  mutations: {
-    SET_AUTH(state, { token, user }) {
-      state.token = token
-      state.user = user
-    },
-    CLEAR_AUTH(state) {
-      state.token = null
-      state.user = null
-    },
-  },
+  update: (id, payload) =>
+    request(`/listings/${id}`, {
+      method: "PUT",
+      body: payload,
+    }),
 
-  actions: {
-    async login({ commit }, { email, password, remember = true }) {
-      const data = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: { email, password },
-      })
+  remove: (id) =>
+    request(`/listings/${id}`, {
+      method: "DELETE",
+    }),
+};
 
-      persistAuth({ token: data.token, user: data.user, remember })
-      commit('SET_AUTH', { token: data.token, user: data.user })
-      return data.user
-    },
-
-    async register({ commit }, { name, email, password, role, remember = true }) {
-      const data = await apiRequest('/auth/register', {
-        method: 'POST',
-        body: { name, email, password, role },
-      })
-
-      persistAuth({ token: data.token, user: data.user, remember })
-      commit('SET_AUTH', { token: data.token, user: data.user })
-      return data.user
-    },
-
-    // Re-fetches the current user's profile from the backend using the
-    // stored token — call this on app startup so a returning user's
-    // details come from the server, not just whatever was cached locally.
-    async fetchProfile({ state, commit }) {
-      if (!state.token) return null
-
-      try {
-        const data = await apiRequest('/auth/me', { token: state.token })
-        commit('SET_AUTH', { token: state.token, user: data.user })
-        return data.user
-      } catch (err) {
-        // Token expired or invalid — log the user out locally.
-        clearPersistedAuth()
-        commit('CLEAR_AUTH')
-        throw err
-      }
-    },
-
-    logout({ commit }) {
-      clearPersistedAuth()
-      commit('CLEAR_AUTH')
-    },
-
-    // Backend always responds with a generic success message here
-    // (it never reveals whether the email is registered), so the
-    // component doesn't need to branch on the result — just show it.
-    async forgotPassword(_ctx, { email }) {
-      const data = await apiRequest('/auth/forgot-password', {
-        method: 'POST',
-        body: { email },
-      })
-      return data.message
-    },
-
-    async resetPassword(_ctx, { token, password }) {
-      const data = await apiRequest('/auth/reset-password', {
-        method: 'POST',
-        body: { token, password },
-      })
-      return data.message
-    },
-  },
-}
+export const earningsApi = {
+  get: () => request("/earnings"),
+};

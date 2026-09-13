@@ -4,6 +4,8 @@ export const createListing = async (req, res) => {
     try {
         const { title, description, category, dailyPrice, weeklyPrice, monthlyPrice, location } = req.body;
 
+        const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
         if (!title || !dailyPrice) {
             return res.status(400).json({ message: 'Title and daily price are required.' });
         }
@@ -16,7 +18,8 @@ export const createListing = async (req, res) => {
             dailyPrice,
             weeklyPrice,
             monthlyPrice,
-            location
+            location,
+            imageUrl
         });
 
         res.status(201).json({ message: 'Listing created and pending approval.', listing });

@@ -7,12 +7,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
-.DS_Store
+
+# Build output
 dist
 dist-ssr
 coverage
+
+# Local environment files
 *.local
+
+# OS files
+.DS_Store
 
 # Editor directories and files
 .vscode/*
@@ -24,8 +31,10 @@ coverage
 *.sln
 *.sw?
 
+# TypeScript
 *.tsbuildinfo
 
+# ESLint
 .eslintcache
 
 # Cypress

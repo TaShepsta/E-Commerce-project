@@ -1,12 +1,12 @@
 import pool from '../config/db.js';
 
 const Listing = {
-    async create({ ownerId, title, description, category, dailyPrice, weeklyPrice, monthlyPrice, location }) {
+    async create({ ownerId, title, description, category, dailyPrice, weeklyPrice, monthlyPrice, location, imageUrl }) {
         const [result] = await pool.query(
             `INSERT INTO listings
-                (owner_id, title, description, category, daily_price, weekly_price, monthly_price, location)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [ownerId, title, description, category, dailyPrice, weeklyPrice || null, monthlyPrice || null, location]
+                (owner_id, title, description, category, daily_price, weekly_price, monthly_price, location, image_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [ownerId, title, description, category, dailyPrice, weeklyPrice || null, monthlyPrice || null, location, imageUrl]
         );
         return this.findById(result.insertId);
     },
