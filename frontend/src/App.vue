@@ -19,7 +19,7 @@ const currentUser = computed(() => store.state.auth.user);
 function syncOwnerState() {
   isApprovedOwner.value =
     typeof window !== "undefined" &&
-    window.localStorage.getItem(ownerApprovedKey) === "true";
+    window.localStorage.getItem(ownerApprovedKey) === "false";
 }
 
 function toggleMenu() {
