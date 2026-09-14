@@ -12,7 +12,10 @@
         <div class="chat-header">
           <div class="assistant-info">
             <div class="assistant-icon">
-              🚚
+              <img
+          src="@/assets/chatbot.png"
+          alt="Rentosphere"
+        />
             </div>
 
             <div>
@@ -396,7 +399,7 @@ async function scrollToBottom() {
   gap: 10px;
 }
 
-.assistant-icon {
+img{
   width: 40px;
   height: 40px;
 
