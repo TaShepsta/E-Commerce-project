@@ -10,11 +10,12 @@ import authRoutes from './routes/authRoutes.js';
 import listingRoutes from './routes/listingRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 
-import listingsRoutes from '../routes/listingsRoutes.js';
-import earningsRoutes from '../routes/earningsRoutes.js';
+import listingsRoutes from './routes/listingsRoutes.js';
+import earningsRoutes from './routes/earningsRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 import errorHandler, { notFound } from './middleware/errorHandler.js';
-import pool from '../config/db.js';
+import pool from './config/db.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -129,10 +130,10 @@ app.get('/api/products', async (req, res, next) => {
             `SELECT
                 id,
                 owner_id AS ownerId,
-                item_name AS name,
+                title AS name,
                 description,
                 category,
-                rental_price AS price,
+                daily_price AS price,
                 price_unit AS priceUnit,
                 status,
                 image_url AS image,
@@ -170,6 +171,9 @@ app.use('/api/bookings', bookingRoutes);
 // Additional routes from saajidah-dev
 app.use('/api/listings/manage', listingsRoutes);
 app.use('/api/earnings', earningsRoutes);
+
+// Rentosphere Assistant chatbot
+app.use('/api/chat', chatRoutes);
 
 // Root route
 app.get('/', (req, res) => {

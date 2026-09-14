@@ -45,6 +45,30 @@
   --white: #ffffff;
 
   --section-gap: 160px;
+
+  /* Shared tokens used by the account pages (login, signup, password reset) */
+  --amber: #e99b13;
+  --cream-border: #e4e0d7;
+  --error: #b3261e;
+  --success: #1e7a4c;
+  --green-hover: #092f29;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+  --text-muted: #68717a;
+  --shadow-card: 0 8px 24px rgba(17, 24, 39, 0.08);
+  --max-width: 1180px;
+  --color-primary: #0b3b32;
+  --color-primary-dark: #092f29;
+  --color-accent: #e99b13;
+  --color-surface-alt: #f7f3ea;
+  --color-text-muted: #68717a;
+}
+
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 *,

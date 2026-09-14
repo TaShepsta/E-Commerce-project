@@ -1,13 +1,20 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
 import logo from "./assets/rentosphere.png";
-import { showToast } from "./utils/notifications";
+import Footer from "./components/Footer.vue";
+import Chatbot from "./components/Chatbot.vue";
 
 const route = useRoute();
+const router = useRouter();
+const store = useStore();
 const menuOpen = ref(false);
 const ownerApprovedKey = "rentosphere-owner-approved";
 const isApprovedOwner = ref(false);
+
+const isAuthenticated = computed(() => store.getters["auth/isAuthenticated"]);
+const currentUser = computed(() => store.state.auth.user);
 
 function syncOwnerState() {
   isApprovedOwner.value =
@@ -27,8 +34,20 @@ function handleEscape(event) {
   if (event.key === "Escape") closeMenu();
 }
 
-function handleAuth(action) {
-  showToast(`${action} is coming soon.`, "info");
+function goToLogin() {
+  closeMenu();
+  router.push("/login");
+}
+
+function goToSignup() {
+  closeMenu();
+  router.push("/signup");
+}
+
+function handleLogout() {
+  closeMenu();
+  store.dispatch("auth/logout");
+  router.push("/");
 }
 
 watch(() => route.fullPath, closeMenu);
@@ -104,19 +123,28 @@ onUnmounted(() => {
       </nav>
 
       <div class="auth-buttons">
-        <button class="login-button" @click="handleAuth('Log in')">
-          Log in
-        </button>
+        <template v-if="isAuthenticated">
+          <span class="welcome-text">Hi, {{ currentUser?.name?.split(" ")[0] || "there" }}</span>
+          <button class="login-button" @click="handleLogout">Log out</button>
+        </template>
+        <template v-else>
+          <button class="login-button" @click="goToLogin">
+            Log in
+          </button>
 
-        <button class="signup-button" @click="handleAuth('Sign up')">
-          Sign up
-        </button>
+          <button class="signup-button" @click="goToSignup">
+            Sign up
+          </button>
+        </template>
       </div>
     </header>
 
     <main>
       <RouterView />
     </main>
+
+    <Footer />
+    <Chatbot />
   </div>
 </template>
 
@@ -246,6 +274,13 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.welcome-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+  margin-right: 4px;
 }
 
 .login-button,
