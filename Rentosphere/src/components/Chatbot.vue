@@ -36,7 +36,10 @@
           <div class="header-info">
 
             <div class="assistant-avatar">
-              R
+              <img
+          src="@/assets/chatbot.png"
+          alt="Rentosphere"
+        />
             </div>
 
             <div>
@@ -1084,7 +1087,7 @@ onBeforeUnmount(() => {
 }
 
 
-.assistant-avatar {
+img {
   width: 40px;
   height: 40px;
 
