@@ -1,9 +1,11 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import Swal from 'sweetalert2'
 
 const router = useRouter()
+const store = useStore()
 
 const form = reactive({
   firstName: '',
@@ -51,28 +53,14 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    const response = await fetch('http://localhost:5000/api/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim().toLowerCase(),
-        phone: form.phone.trim(),
-        password: form.password,
-        role: 'OWNER'
-      })
+    // Goes through the Vuex auth store so the JWT + user get saved
+    // and the navbar updates immediately, same as a normal login.
+    await store.dispatch('auth/register', {
+      name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      role: 'owner'
     })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(
-        data.message || data.error || 'Unable to create your account.'
-      )
-    }
 
     await Swal.fire({
       icon: 'success',
@@ -81,7 +69,8 @@ const handleSubmit = async () => {
       confirmButtonText: 'Continue'
     })
 
-    router.push('/login')
+    // Already logged in via the store now, so go straight into the site
+    router.push('/')
   } catch (err) {
     console.error('Owner signup error:', err)
 

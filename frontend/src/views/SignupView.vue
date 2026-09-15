@@ -1,8 +1,7 @@
 <template>
   <main class="signup-page">
 
-```
-<RouterLink to="/" class="back-home">
+    <RouterLink to="/" class="back-home">
   ← Back to Home
 </RouterLink>
 
@@ -176,7 +175,6 @@
   </RouterLink>
 
 </section>
-```
 
   </main>
 </template>

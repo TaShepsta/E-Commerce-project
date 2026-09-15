@@ -1,391 +1,208 @@
 <template>
   <div class="browse-layout">
-    <!-- =====================================================
-         FILTER SIDEBAR
-    ====================================================== -->
+    <!-- MOBILE FILTER BAR -->
+    <div class="mobile-filter-bar">
+      <button class="filter-toggle" type="button" @click="mobileFiltersOpen = true">
+        <svg width="16" height="14" viewBox="0 0 16 14" fill="none">
+          <path d="M1 1h14M4 7h8M6.5 13h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        Filters
+        <span v-if="activeFilterCount" class="filter-count">{{ activeFilterCount }}</span>
+      </button>
 
-    <aside class="filter-sidebar">
-      <div class="filter-card">
-        <div class="filter-heading">
-          <div>
-            <span class="filter-eyebrow">REFINE</span>
-            <h3>Find what you need</h3>
-          </div>
+      <select v-model="sortBy" class="sort-select sort-select-mobile">
+        <option value="default">Sort: Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="rating-desc">Top Rated</option>
+      </select>
+    </div>
 
+    <!-- SIDEBAR -->
+    <aside class="filter-sidebar" :class="{ 'is-open': mobileFiltersOpen }">
+      <div class="filter-sidebar-header">
+        <h3>Filters</h3>
+        <div class="filter-sidebar-actions">
           <button
-            v-if="
-              filters.categories.length ||
-              filters.location ||
-              filters.priceRange < 2000
-            "
-            type="button"
+            v-if="activeFilterCount"
             class="clear-filters"
+            type="button"
             @click="clearFilters"
           >
-            Clear
+            Clear all
+          </button>
+          <button
+            class="close-filters"
+            type="button"
+            aria-label="Close filters"
+            @click="mobileFiltersOpen = false"
+          >
+            ✕
           </button>
         </div>
+      </div>
 
-        <div class="filter-divider"></div>
+      <div class="filter-group">
+        <h4>Category</h4>
+        <label v-for="c in categories" :key="c" class="checkbox">
+          <input type="checkbox" :value="c" v-model="filters.categories" />
+          <span class="checkbox-box"></span>
+          {{ c }}
+        </label>
+      </div>
 
-        <!-- Category -->
-        <div class="filter-group">
-          <div class="filter-title-row">
-            <h4>Category</h4>
-
-            <span v-if="filters.categories.length" class="selected-count">
-              {{ filters.categories.length }}
-            </span>
-          </div>
-
-          <div class="category-options">
-            <label
-              v-for="category in categories"
-              :key="category"
-              class="checkbox"
-              :class="{
-                selected: filters.categories.includes(category),
-              }"
-            >
-              <input
-                type="checkbox"
-                :value="category"
-                v-model="filters.categories"
-              />
-
-              <span class="custom-checkbox">
-                <span class="checkmark">✓</span>
-              </span>
-
-              <span class="checkbox-text">
-                {{ category }}
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Price -->
-        <div class="filter-group">
-          <div class="filter-title-row">
-            <h4>Price Range</h4>
-
-            <span class="price-value">
-              R{{ filters.priceRange }}
-            </span>
-          </div>
-
-          <div class="slider-wrapper">
-            <input
-              type="range"
-              min="0"
-              max="2000"
-              step="50"
-              v-model.number="filters.priceRange"
-              class="slider"
-            />
-
-            <div class="slider-labels">
-              <span>R0</span>
-              <span>R2,000+</span>
-            </div>
-          </div>
-
-          <p class="filter-description">
-            Show items costing up to
-            <strong>R{{ filters.priceRange }}/day</strong>
-          </p>
-        </div>
-
-        <!-- Location -->
-        <div class="filter-group">
-          <div class="filter-title-row">
-            <h4>Location</h4>
-          </div>
-
-          <div class="location-input-wrapper">
-            <span class="location-icon">⌖</span>
-
-            <input
-              v-model="filters.location"
-              type="text"
-              placeholder="Cape Town"
-              class="filter-input"
-            />
-
-            <button
-              v-if="filters.location"
-              type="button"
-              class="clear-location"
-              aria-label="Clear location"
-              @click="filters.location = ''"
-            >
-              ×
-            </button>
-          </div>
-
-          <p class="filter-description">
-            Search by the item's location.
-          </p>
-        </div>
-
-        <!-- Active filters -->
-        <div
-          v-if="
-            filters.categories.length ||
-            filters.location ||
-            filters.priceRange < 2000
-          "
-          class="active-filters"
-        >
-          <span class="active-label">Active filters</span>
-
-          <div class="active-filter-list">
-            <span
-              v-for="category in filters.categories"
-              :key="`category-${category}`"
-              class="filter-tag"
-            >
-              {{ category }}
-
-              <button
-                type="button"
-                @click="removeCategory(category)"
-                :aria-label="`Remove ${category} filter`"
-              >
-                ×
-              </button>
-            </span>
-
-            <span
-              v-if="filters.location"
-              class="filter-tag"
-            >
-              {{ filters.location }}
-
-              <button
-                type="button"
-                @click="filters.location = ''"
-                aria-label="Remove location filter"
-              >
-                ×
-              </button>
-            </span>
-
-            <span
-              v-if="filters.priceRange < 2000"
-              class="filter-tag"
-            >
-              Up to R{{ filters.priceRange }}
-
-              <button
-                type="button"
-                @click="filters.priceRange = 2000"
-                aria-label="Remove price filter"
-              >
-                ×
-              </button>
-            </span>
-          </div>
+      <div class="filter-group">
+        <h4>Price Range</h4>
+        <input
+          type="range"
+          min="0"
+          max="2000"
+          v-model.number="filters.priceRange"
+          class="slider"
+        />
+        <div class="price-range-labels">
+          <span>R0</span>
+          <span class="price-range-current">Up to R{{ filters.priceRange }}/day</span>
         </div>
       </div>
+
+      <div class="filter-group">
+        <h4>Location</h4>
+        <div class="filter-input-wrap">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="filter-input-icon">
+            <path d="M7 13S12 8.4 12 5.5a5 5 0 10-10 0C2 8.4 7 13 7 13z" stroke="currentColor" stroke-width="1.3" />
+            <circle cx="7" cy="5.5" r="1.6" stroke="currentColor" stroke-width="1.3" />
+          </svg>
+          <input
+            v-model="filters.location"
+            placeholder="Cape Town"
+            class="filter-input"
+          />
+        </div>
+      </div>
+
+      <button class="apply-mobile" type="button" @click="mobileFiltersOpen = false">
+        Show {{ filteredProducts.length }} results
+      </button>
     </aside>
 
-    <!-- =====================================================
-         MAIN PRODUCT AREA
-    ====================================================== -->
+    <div v-if="mobileFiltersOpen" class="filter-scrim" @click="mobileFiltersOpen = false"></div>
 
     <main class="product-main">
-      <!-- Header -->
       <div class="browse-header">
-        <div class="header-copy">
-          <span class="browse-eyebrow">EXPLORE RENTOSPHERE</span>
-
-          <h2>Browse Verified Products</h2>
-
-          <p>
-            Find quality rental products for your next event,
-            project or adventure.
-          </p>
+        <div>
+          <h2>Browse Verified Listings</h2>
+          <p>{{ filteredProducts.length }} item{{ filteredProducts.length === 1 ? "" : "s" }} available</p>
         </div>
 
-        <div class="item-count">
-          <strong>{{ filteredProducts.length }}</strong>
-          <span>
-            {{
-              filteredProducts.length === 1
-                ? "item available"
-                : "items available"
-            }}
-          </span>
+        <div class="browse-header-controls">
+          <div class="search-wrap">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" class="search-icon">
+              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4" />
+              <path d="M10.2 10.2 14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search rentals..."
+              class="search-input"
+            />
+          </div>
+
+          <select v-model="sortBy" class="sort-select">
+            <option value="default">Sort: Featured</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating-desc">Top Rated</option>
+          </select>
         </div>
       </div>
 
-      <!-- Active filter summary -->
-      <div
-        v-if="
-          filters.categories.length ||
-          filters.location ||
-          filters.priceRange < 2000
-        "
-        class="filter-summary"
-      >
-        <span class="summary-dot"></span>
-
-        <span>
-          Showing results based on your selected filters.
+      <!-- ACTIVE FILTER CHIPS -->
+      <div v-if="activeFilterCount" class="active-chips">
+        <span v-for="c in filters.categories" :key="c" class="chip">
+          {{ c }}
+          <button type="button" @click="removeCategoryFilter(c)" aria-label="Remove filter">✕</button>
         </span>
+        <span v-if="filters.priceRange < 2000" class="chip">
+          Up to R{{ filters.priceRange }}
+          <button type="button" @click="filters.priceRange = 2000" aria-label="Remove filter">✕</button>
+        </span>
+        <span v-if="filters.location" class="chip">
+          {{ filters.location }}
+          <button type="button" @click="filters.location = ''" aria-label="Remove filter">✕</button>
+        </span>
+      </div>
 
-        <button
-          type="button"
-          @click="clearFilters"
-        >
-          Clear filters
+      <!-- LOADING SKELETONS -->
+      <div v-if="isLoading" class="grid-three">
+        <div v-for="n in 6" :key="n" class="product-card skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="card-body">
+            <div class="skeleton-line skeleton-line-title"></div>
+            <div class="skeleton-line skeleton-line-meta"></div>
+            <div class="skeleton-line skeleton-line-price"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div v-else-if="filteredProducts.length === 0" class="empty-state">
+        <div class="empty-icon">◎</div>
+        <h3>No listings match your filters</h3>
+        <p>Try widening your price range or clearing a filter to see more items.</p>
+        <button class="btn-small btn-empty" type="button" @click="clearFilters">
+          Clear all filters
         </button>
       </div>
 
-      <!-- Loading -->
-      <div
-        v-if="loading"
-        class="state-message"
-      >
-        <div class="loading-spinner"></div>
-
-        <p>Loading products...</p>
-      </div>
-
-      <!-- Error -->
-      <div
-        v-else-if="loadError"
-        class="state-message error"
-      >
-        <div class="state-icon">!</div>
-
-        <h3>Something went wrong</h3>
-
-        <p>{{ loadError }}</p>
-
-        <button
-          class="retry-button"
-          type="button"
-          @click="loadProducts"
-        >
-          Try Again
-        </button>
-      </div>
-
-      <!-- No products -->
-      <div
-        v-else-if="filteredProducts.length === 0"
-        class="state-message"
-      >
-        <div class="state-icon empty">⌕</div>
-
-        <h3>No products found</h3>
-
-        <p>
-          No products match your current filters.
-          Try changing your search criteria.
-        </p>
-
-        <button
-          class="retry-button"
-          type="button"
-          @click="clearFilters"
-        >
-          Clear Filters
-        </button>
-      </div>
-
-      <!-- Products -->
-      <div
-        v-else
-        class="grid-three"
-      >
-        <div
-          v-for="product in filteredProducts"
-          :key="product.id"
-          class="product-card"
-        >
-          <!-- Product image -->
+      <!-- RESULTS -->
+      <div v-else class="grid-three">
+        <div v-for="p in filteredProducts" :key="p.id" class="product-card">
           <div class="product-image">
             <img
-              v-if="product.image_url"
-              :src="product.image_url"
-              :alt="product.title"
-              @error="handleImageError"
+              v-if="p.image_url || p.image"
+              :src="p.image_url || p.image"
+              :alt="p.title || p.name"
             />
-
-            <span
-              v-else
-              class="placeholder-icon"
-            >
-              No Image
-            </span>
-
-            <!-- Status -->
+            <span v-else class="placeholder-icon">No Image</span>
             <span
               class="badge"
-              :class="
-                product.status === 'Safety Verified'
-                  ? 'verified'
-                  : 'pending'
-              "
+              :class="p.status === 'Safety Verified' ? 'verified' : 'pending'"
             >
-              {{ product.status }}
+              {{ p.status }}
             </span>
           </div>
 
-          <!-- Card content -->
           <div class="card-body">
-            <h4>{{ product.title }}</h4>
-
+            <h4>{{ p.title || p.name }}</h4>
             <p class="meta">
-              {{ product.location || "Location available on request" }}
-              <span>•</span>
-              {{ normalizeCategoryName(product.category) }}
+              {{ p.location || "Location available on request" }} •
+              {{ normalizeCategoryName(p.category) }}
             </p>
 
-            <p class="description">
-              {{ product.description }}
+            <p v-if="p.rating" class="rating-row">
+              <span class="stars">★★★★★</span>
+              <span class="rating-value">{{ p.rating }}</span>
+              <span v-if="p.reviews" class="rating-count">({{ p.reviews }})</span>
             </p>
 
             <div class="price-row">
-              <span class="price">
-                R{{ formatPrice(product.price_per_day) }}/day
-              </span>
+              <span class="price">R{{ p.price_per_day || p.price }}<small>/day</small></span>
             </div>
-
             <div class="earning-hint">
-              <span>
-                Owner Earnings:
-                <strong>
-                  R{{ calculateOwnerEarnings(product.price_per_day) }}
-                </strong>
-              </span>
-
-              <span class="earning-divider">|</span>
-
-              <span>
-                Fee:
-                <strong>
-                  R{{ calculateFee(product.price_per_day) }}
-                </strong>
-              </span>
+              Owner Earnings: R{{
+                ((p.price_per_day || p.price) * 0.85).toFixed(0)
+              }}
+              | Fee: R{{ ((p.price_per_day || p.price) * 0.15).toFixed(0) }}
             </div>
-
-            <button
-              class="btn-small"
-              type="button"
-              @click="selectedProduct = product"
-            >
+            <button class="btn-small" @click="selectedProduct = p">
               View Details & Book
-              <span class="button-arrow">→</span>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Product details modal -->
       <ProductDetail
         v-if="selectedProduct"
         :product="selectedProduct"
@@ -396,1539 +213,756 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  computed,
-  onMounted,
-} from "vue";
-
+import { ref, computed, onMounted } from "vue";
 import ProductDetail from "../components/ProductDetail.vue";
-
-import { eventCategories } from "../data/products";
-
-import { productsApi } from "../services/api";
-
+import { eventCategories, products as localProducts } from "../data/products";
+import { listingsApi } from "../services/api";
 import { showToast } from "../utils/notifications";
 
-// ============================================================
-// STATE
-// ============================================================
-
 const selectedProduct = ref(null);
-
 const products = ref([]);
+const isLoading = ref(true);
+const categories = eventCategories.map((category) => category.name);
+const filters = ref({ categories: [], priceRange: 2000, location: "" });
+const searchQuery = ref("");
+const sortBy = ref("default");
+const mobileFiltersOpen = ref(false);
 
-const loading = ref(false);
-
-const loadError = ref("");
-
-// ============================================================
-// CATEGORIES
-// ============================================================
-
-const categories = eventCategories.map(
-  (category) => category.name,
-);
-
-// ============================================================
-// FILTERS
-// ============================================================
-
-const filters = ref({
-  categories: [],
-  priceRange: 2000,
-  location: "",
-});
-
-// ============================================================
-// CATEGORY NAME
-// ============================================================
-
-const normalizeCategoryName = (category) => {
-  const foundCategory = eventCategories.find(
-    (item) =>
-      item.slug === category ||
-      item.name === category,
+const activeFilterCount = computed(() => {
+  return (
+    filters.value.categories.length +
+    (filters.value.priceRange < 2000 ? 1 : 0) +
+    (filters.value.location ? 1 : 0)
   );
-
-  return foundCategory?.name || category;
-};
-
-// ============================================================
-// LOAD PRODUCTS FROM BACKEND
-// ============================================================
-
-async function loadProducts() {
-  loading.value = true;
-
-  loadError.value = "";
-
-  try {
-    const data = await productsApi.getAll();
-
-    if (Array.isArray(data)) {
-      products.value = data;
-    } else {
-      products.value = [];
-    }
-  } catch (error) {
-    console.error(
-      "Failed to load products:",
-      error,
-    );
-
-    loadError.value =
-      error.message ||
-      "Unable to load products.";
-
-    showToast(
-      loadError.value,
-      "error",
-    );
-  } finally {
-    loading.value = false;
-  }
-}
-
-// ============================================================
-// CLEAR FILTERS
-// ============================================================
+});
 
 function clearFilters() {
-  filters.value.categories = [];
-  filters.value.priceRange = 2000;
-  filters.value.location = "";
+  filters.value = { categories: [], priceRange: 2000, location: "" };
+  searchQuery.value = "";
 }
 
-// ============================================================
-// REMOVE SINGLE CATEGORY
-// ============================================================
-
-function removeCategory(category) {
-  filters.value.categories =
-    filters.value.categories.filter(
-      (item) => item !== category,
-    );
+function removeCategoryFilter(category) {
+  filters.value.categories = filters.value.categories.filter(
+    (c) => c !== category
+  );
 }
 
-// ============================================================
-// IMAGE ERROR
-// ============================================================
+const normalizeCategoryName = (category) => {
+  return (
+    eventCategories.find((item) => item.slug === category)?.name || category
+  );
+};
 
-function handleImageError(event) {
-  event.target.style.display = "none";
-}
+const normalizeListing = (listing) => {
+  return {
+    ...listing,
+    title: listing.title,
+    image_url: listing.image_url || listing.image || "",
+    image: listing.image_url || listing.image || "",
+    location: listing.location || "",
+    price_per_day: Number(listing.daily_price ?? listing.price_per_day ?? 0),
+    // GET /api/listings only ever returns approved listings, but the
+    // owner-dashboard creation flow still writes 'Available' in some
+    // paths, so treat both as verified until that's fully reconciled.
+    status:
+      listing.status === "approved" || listing.status === "Available"
+        ? "Safety Verified"
+        : listing.status,
+  };
+};
 
-// ============================================================
-// PRICE FORMATTING
-// ============================================================
-
-function formatPrice(price) {
-  const number = Number(price || 0);
-
-  return number.toFixed(0);
-}
-
-// ============================================================
-// OWNER EARNINGS
-// ============================================================
-
-function calculateOwnerEarnings(price) {
-  const number = Number(price || 0);
-
-  return (number * 0.85).toFixed(0);
-}
-
-// ============================================================
-// PLATFORM FEE
-// ============================================================
-
-function calculateFee(price) {
-  const number = Number(price || 0);
-
-  return (number * 0.15).toFixed(0);
-}
-
-// ============================================================
-// FILTERED PRODUCTS
-// ============================================================
-
-const filteredProducts = computed(() => {
-  return products.value.filter((product) => {
-    // -------------------------------
-    // CATEGORY
-    // -------------------------------
-
-    const categoryName =
-      normalizeCategoryName(
-        product.category || "",
-      );
-
-    const categoryMatches =
-      filters.value.categories.length === 0 ||
-      filters.value.categories.includes(
-        categoryName,
-      );
-
-    // -------------------------------
-    // PRICE
-    // -------------------------------
-
-    const priceValue = Number(
-      product.price_per_day || 0,
-    );
-
-    const priceMatches =
-      priceValue <=
-      Number(filters.value.priceRange);
-
-    // -------------------------------
-    // LOCATION
-    // -------------------------------
-
-    const locationText = (
-      product.location || ""
-    ).toLowerCase();
-
-    const searchLocation =
-      filters.value.location
-        .toLowerCase()
-        .trim();
-
-    const locationMatches =
-      !searchLocation ||
-      locationText.includes(
-        searchLocation,
-      );
-
-    // -------------------------------
-    // FINAL RESULT
-    // -------------------------------
-
-    return (
-      categoryMatches &&
-      priceMatches &&
-      locationMatches
-    );
-  });
+// Fallback shape for the local products.js dataset, used whenever the API
+// has no rows yet (or errors out), so the Browse page isn't empty.
+const normalizeLocalProduct = (item) => ({
+  ...item,
+  title: item.name,
+  image_url: item.image,
+  image: item.image,
+  location: "Cape Town", // placeholder until products have real locations
+  price_per_day: item.price,
+  status: "Safety Verified",
 });
 
-// ============================================================
-// LOAD PRODUCTS WHEN PAGE OPENS
-// ============================================================
+onMounted(async () => {
+  try {
+    const data = await listingsApi.getPublic();
+    const apiListings = Array.isArray(data) ? data.map(normalizeListing) : [];
+    products.value =
+      apiListings.length > 0
+        ? apiListings
+        : localProducts.map(normalizeLocalProduct);
+  } catch (error) {
+    showToast(error.message, "error");
+    products.value = localProducts.map(normalizeLocalProduct);
+  } finally {
+    isLoading.value = false;
+  }
+});
 
-onMounted(() => {
-  loadProducts();
+const filteredProducts = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase();
+
+  const filtered = products.value.filter((p) => {
+    const categoryName = normalizeCategoryName(p.category || "");
+    const catOk =
+      filters.value.categories.length === 0 ||
+      filters.value.categories.includes(categoryName);
+
+    const priceValue = Number(p.price_per_day ?? p.price ?? 0);
+    const priceOk = Number(priceValue) <= Number(filters.value.priceRange);
+
+    const locText = (p.location || "").toLowerCase();
+    const locOk =
+      !filters.value.location ||
+      locText.includes(filters.value.location.toLowerCase());
+
+    const nameText = (p.title || p.name || "").toLowerCase();
+    const searchOk = !query || nameText.includes(query);
+
+    return catOk && priceOk && locOk && searchOk;
+  });
+
+  const sorted = [...filtered];
+  if (sortBy.value === "price-asc") {
+    sorted.sort(
+      (a, b) => (a.price_per_day ?? a.price ?? 0) - (b.price_per_day ?? b.price ?? 0)
+    );
+  } else if (sortBy.value === "price-desc") {
+    sorted.sort(
+      (a, b) => (b.price_per_day ?? b.price ?? 0) - (a.price_per_day ?? a.price ?? 0)
+    );
+  } else if (sortBy.value === "rating-desc") {
+    sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+  }
+
+  return sorted;
 });
 </script>
 
 <style scoped>
-/* ============================================================
-   RENTOSPHERE COLOUR SYSTEM
-============================================================ */
-
 .browse-layout {
-  --browse-green: #0b3b32;
-  --browse-green-light: #e7f0ed;
-  --browse-gold: #e99b13;
-  --browse-gold-light: #fff4dc;
-  --browse-cream: #f7f3ea;
-  --browse-white: #ffffff;
-  --browse-ink: #111827;
-  --browse-muted: #6b7280;
-  --browse-border: #e5e1d8;
-
   display: flex;
   min-height: calc(100vh - 72px);
-
-  background: var(--browse-cream);
-
-  color: var(--browse-ink);
+  background: #f7f3ea;
+  position: relative;
 }
 
-/* ============================================================
-   FILTER SIDEBAR
-============================================================ */
+/* ---------------- SIDEBAR ---------------- */
 
 .filter-sidebar {
-  width: 300px;
-
+  width: 280px;
   flex-shrink: 0;
-
-  padding: 28px 20px 28px 28px;
+  background: #fff;
+  border-right: 1px solid #e6e2da;
+  padding: 28px 24px;
+  color: #111827;
 }
 
-/*
- * This is what keeps the filters visible while
- * the user scrolls through the products.
- */
-.filter-card {
-  position: sticky;
-  top: 24px;
-
-  background: var(--browse-white);
-
-  border: 1px solid var(--browse-border);
-
-  border-radius: 18px;
-
-  padding: 22px;
-
-  box-shadow:
-    0 8px 30px rgba(11, 59, 50, 0.07);
-
-  max-height: calc(100vh - 48px);
-
-  overflow-y: auto;
-
-  scrollbar-width: thin;
-}
-
-/* ============================================================
-   FILTER HEADER
-============================================================ */
-
-.filter-heading {
+.filter-sidebar-header {
   display: flex;
-
-  align-items: flex-start;
-
+  align-items: center;
   justify-content: space-between;
-
-  gap: 12px;
 }
 
-.filter-eyebrow,
-.browse-eyebrow {
-  display: block;
-
-  color: var(--browse-gold);
-
-  font-size: 10px;
-
-  font-weight: 800;
-
-  letter-spacing: 1.4px;
-
-  text-transform: uppercase;
-
-  margin-bottom: 5px;
-}
-
-.filter-heading h3 {
+.filter-sidebar-header h3 {
   margin: 0;
+  color: #0b3b32;
+}
 
-  color: var(--browse-green);
-
-  font-size: 20px;
-
-  line-height: 1.2;
-
-  font-weight: 800;
+.filter-sidebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .clear-filters {
   border: none;
-
-  background: transparent;
-
-  color: var(--browse-green);
-
-  font-size: 12px;
-
+  background: none;
+  color: #e99b13;
+  font-size: 0.82rem;
   font-weight: 700;
-
   cursor: pointer;
-
-  padding: 4px 0;
-
-  white-space: nowrap;
+  padding: 0;
 }
 
-.clear-filters:hover {
-  color: var(--browse-gold);
+.close-filters {
+  display: none;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #6b7280;
 }
-
-/* ============================================================
-   FILTER DIVIDER
-============================================================ */
-
-.filter-divider {
-  height: 1px;
-
-  background: var(--browse-border);
-
-  margin: 20px 0;
-}
-
-/* ============================================================
-   FILTER GROUP
-============================================================ */
 
 .filter-group {
-  margin-top: 24px;
-}
-
-.filter-group:first-of-type {
-  margin-top: 0;
-}
-
-.filter-title-row {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  gap: 10px;
-
-  margin-bottom: 12px;
+  margin-top: 28px;
 }
 
 .filter-group h4 {
-  margin: 0;
-
-  color: var(--browse-ink);
-
   font-size: 13px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.1px;
-}
-
-.selected-count {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  min-width: 22px;
-
-  height: 22px;
-
-  padding: 0 6px;
-
-  border-radius: 20px;
-
-  background: var(--browse-green-light);
-
-  color: var(--browse-green);
-
-  font-size: 11px;
-
-  font-weight: 800;
-}
-
-/* ============================================================
-   CATEGORY CHECKBOXES
-============================================================ */
-
-.category-options {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 4px;
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: #172033;
+  letter-spacing: 0.2px;
 }
 
 .checkbox {
   display: flex;
-
   align-items: center;
-
   gap: 10px;
-
-  min-height: 38px;
-
-  padding: 6px 8px;
-
-  margin: 0 -8px;
-
-  border-radius: 8px;
-
+  font-size: 14px;
+  margin: 10px 0;
+  color: #33393f;
   cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.checkbox:hover {
-  background: var(--browse-cream);
-}
-
-.checkbox.selected {
-  background: var(--browse-green-light);
-
-  color: var(--browse-green);
 }
 
 .checkbox input {
   position: absolute;
-
   opacity: 0;
-
-  pointer-events: none;
+  width: 0;
+  height: 0;
 }
 
-.custom-checkbox {
-  width: 18px;
-
-  height: 18px;
-
+.checkbox-box {
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  border: 1.5px solid #c8c5bd;
-
+  border: 1.5px solid #d8d2c4;
   border-radius: 5px;
-
-  background: #ffffff;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.checkbox input:checked + .custom-checkbox {
-  background: var(--browse-green);
-
-  border-color: var(--browse-green);
+.checkbox input:checked + .checkbox-box {
+  background: #0b3b32;
+  border-color: #0b3b32;
 }
 
-.checkmark {
-  color: #ffffff;
-
-  font-size: 11px;
-
-  font-weight: 800;
-
-  opacity: 0;
-
-  transform: scale(0.5);
-
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-}
-
-.checkbox input:checked + .custom-checkbox .checkmark {
-  opacity: 1;
-
-  transform: scale(1);
-}
-
-.checkbox-text {
-  font-size: 13px;
-
-  line-height: 1.3;
-}
-
-/* ============================================================
-   PRICE SLIDER
-============================================================ */
-
-.price-value {
-  color: var(--browse-green);
-
-  font-size: 13px;
-
-  font-weight: 800;
-}
-
-.slider-wrapper {
-  padding: 4px 2px 0;
+.checkbox input:checked + .checkbox-box::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(40deg);
 }
 
 .slider {
-  appearance: none;
-
   width: 100%;
-
-  height: 5px;
-
-  border-radius: 10px;
-
-  background: #ddd9d0;
-
-  outline: none;
-
-  cursor: pointer;
+  accent-color: #e9a11a;
 }
 
-.slider::-webkit-slider-thumb {
-  appearance: none;
-
-  width: 18px;
-
-  height: 18px;
-
-  border-radius: 50%;
-
-  background: var(--browse-gold);
-
-  border: 3px solid #ffffff;
-
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.18);
-
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 18px;
-
-  height: 18px;
-
-  border-radius: 50%;
-
-  background: var(--browse-gold);
-
-  border: 3px solid #ffffff;
-
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.18);
-
-  cursor: pointer;
-}
-
-.slider-labels {
+.price-range-labels {
   display: flex;
-
   justify-content: space-between;
-
-  margin-top: 7px;
-
-  color: var(--browse-muted);
-
-  font-size: 10px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8a8f96;
 }
 
-.filter-description {
-  margin: 8px 0 0;
-
-  color: var(--browse-muted);
-
-  font-size: 11px;
-
-  line-height: 1.45;
+.price-range-current {
+  color: #0b3b32;
+  font-weight: 700;
 }
 
-.filter-description strong {
-  color: var(--browse-green);
-}
-
-/* ============================================================
-   LOCATION INPUT
-============================================================ */
-
-.location-input-wrapper {
+.filter-input-wrap {
   position: relative;
-
-  display: flex;
-
-  align-items: center;
 }
 
-.location-icon {
+.filter-input-icon {
   position: absolute;
-
   left: 12px;
-
-  color: var(--browse-green);
-
-  font-size: 18px;
-
-  line-height: 1;
-
-  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa0a6;
 }
 
 .filter-input {
   width: 100%;
-
   height: 42px;
-
-  box-sizing: border-box;
-
-  border: 1px solid var(--browse-border);
-
+  border: 1px solid #e6e2da;
   border-radius: 9px;
+  padding: 0 14px 0 34px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
 
-  padding: 0 36px 0 36px;
-
-  background: #ffffff;
-
-  color: var(--browse-ink);
-
-  font-size: 13px;
-
+.filter-input:focus,
+.search-input:focus {
   outline: none;
-
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  border-color: #e9a11a;
 }
 
-.filter-input::placeholder {
-  color: #9ca3af;
-}
-
-.filter-input:focus {
-  border-color: var(--browse-green);
-
-  box-shadow:
-    0 0 0 3px rgba(11, 59, 50, 0.08);
-}
-
-.clear-location {
-  position: absolute;
-
-  right: 10px;
-
-  top: 50%;
-
-  transform: translateY(-50%);
-
-  width: 22px;
-
-  height: 22px;
-
+.apply-mobile {
+  display: none;
+  width: 100%;
+  margin-top: 30px;
+  height: 46px;
   border: none;
-
-  border-radius: 50%;
-
-  background: #eeeae2;
-
-  color: var(--browse-muted);
-
-  cursor: pointer;
-
-  line-height: 18px;
-
-  font-size: 15px;
-
-  padding: 0;
-}
-
-.clear-location:hover {
-  background: var(--browse-green);
-
-  color: #ffffff;
-}
-
-/* ============================================================
-   ACTIVE FILTERS
-============================================================ */
-
-.active-filters {
-  margin-top: 24px;
-
-  padding-top: 18px;
-
-  border-top: 1px solid var(--browse-border);
-}
-
-.active-label {
-  display: block;
-
-  margin-bottom: 9px;
-
-  color: var(--browse-muted);
-
-  font-size: 10px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.8px;
-
-  text-transform: uppercase;
-}
-
-.active-filter-list {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 6px;
-}
-
-.filter-tag {
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 5px;
-
-  max-width: 100%;
-
-  padding: 5px 7px 5px 9px;
-
-  border-radius: 20px;
-
-  background: var(--browse-gold-light);
-
-  color: #76500b;
-
-  font-size: 10px;
-
+  border-radius: 9px;
+  background: #0b3b32;
+  color: white;
   font-weight: 700;
-}
-
-.filter-tag button {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  width: 16px;
-
-  height: 16px;
-
-  padding: 0;
-
-  border: none;
-
-  border-radius: 50%;
-
-  background: transparent;
-
-  color: #76500b;
-
   cursor: pointer;
-
-  font-size: 13px;
 }
 
-.filter-tag button:hover {
-  background: rgba(0, 0, 0, 0.08);
+.filter-scrim {
+  display: none;
 }
 
-/* ============================================================
-   MAIN PRODUCT AREA
-============================================================ */
+/* ---------------- MOBILE FILTER BAR ---------------- */
+
+.mobile-filter-bar {
+  display: none;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid #e6e2da;
+  border-radius: 9px;
+  background: white;
+  color: #172033;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 50%;
+  background: #e9a11a;
+  color: #172033;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.sort-select-mobile {
+  flex: 1;
+}
+
+/* ---------------- MAIN ---------------- */
 
 .product-main {
   flex: 1;
-
+  padding: 36px 40px;
+  color: #111827;
   min-width: 0;
-
-  padding: 36px 32px 60px;
-
-  color: var(--browse-ink);
 }
-
-/* ============================================================
-   HEADER
-============================================================ */
 
 .browse-header {
   display: flex;
-
+  align-items: flex-start;
   justify-content: space-between;
-
-  align-items: flex-end;
-
-  gap: 20px;
-
-  max-width: 1400px;
-}
-
-.header-copy {
-  min-width: 0;
-}
-
-.browse-eyebrow {
-  margin-bottom: 7px;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
 .browse-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0b3b32;
   margin: 0;
-
-  color: var(--browse-green);
-
-  font-size: 30px;
-
-  line-height: 1.15;
-
-  font-weight: 800;
-
-  letter-spacing: -0.5px;
 }
 
 .browse-header p {
-  max-width: 650px;
+  color: #7b8288;
+  margin-top: 6px;
+}
 
-  margin: 9px 0 0;
+.browse-header-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-  color: var(--browse-muted);
+.search-wrap {
+  position: relative;
+}
 
+.search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa0a6;
+}
+
+.search-input {
+  width: 220px;
+  height: 42px;
+  border: 1px solid #e6e2da;
+  border-radius: 9px;
+  padding: 0 14px 0 36px;
   font-size: 14px;
-
-  line-height: 1.6;
+  box-sizing: border-box;
 }
 
-.item-count {
+.sort-select {
+  height: 42px;
+  border: 1px solid #e6e2da;
+  border-radius: 9px;
+  padding: 0 14px;
+  font-size: 14px;
+  background: white;
+  color: #172033;
+}
+
+/* ---------------- ACTIVE FILTER CHIPS ---------------- */
+
+.active-chips {
   display: flex;
-
-  align-items: baseline;
-
-  gap: 5px;
-
-  flex-shrink: 0;
-
-  padding: 9px 13px;
-
-  border: 1px solid var(--browse-border);
-
-  border-radius: 30px;
-
-  background: #ffffff;
-
-  color: var(--browse-muted);
-
-  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-.item-count strong {
-  color: var(--browse-green);
-
-  font-size: 15px;
-}
-
-/* ============================================================
-   FILTER SUMMARY
-============================================================ */
-
-.filter-summary {
-  display: flex;
-
+.chip {
+  display: inline-flex;
   align-items: center;
-
   gap: 8px;
-
-  margin-top: 22px;
-
-  padding: 10px 13px;
-
-  border: 1px solid #dce8e4;
-
-  border-radius: 10px;
-
-  background: var(--browse-green-light);
-
-  color: var(--browse-green);
-
-  font-size: 12px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 20px;
+  background: #f2ede2;
+  color: #0b3b32;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
-.summary-dot {
-  width: 7px;
-
-  height: 7px;
-
-  flex-shrink: 0;
-
-  border-radius: 50%;
-
-  background: var(--browse-gold);
-}
-
-.filter-summary button {
-  margin-left: auto;
-
+.chip button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   border: none;
-
-  background: transparent;
-
-  color: var(--browse-green);
-
-  font-size: 11px;
-
-  font-weight: 800;
-
+  border-radius: 50%;
+  background: rgba(11, 59, 50, 0.12);
+  color: #0b3b32;
+  font-size: 0.65rem;
   cursor: pointer;
-
-  text-decoration: underline;
 }
 
-/* ============================================================
-   PRODUCT GRID
-============================================================ */
+/* ---------------- GRID / CARDS ---------------- */
 
 .grid-three {
   display: grid;
-
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
-
-  margin-top: 26px;
-
-  max-width: 1400px;
+  margin-top: 28px;
 }
 
-/* ============================================================
-   PRODUCT CARD
-============================================================ */
-
 .product-card {
-  display: flex;
-
-  flex-direction: column;
-
-  min-width: 0;
-
-  background: #ffffff;
-
-  border: 1px solid var(--browse-border);
-
-  border-radius: 15px;
-
+  background: #fff;
+  border: 1px solid #e6e2da;
+  border-radius: 14px;
   overflow: hidden;
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-
-  color: var(--browse-ink);
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: #111827;
 }
 
 .product-card:hover {
   transform: translateY(-4px);
-
-  border-color: #d8d2c6;
-
-  box-shadow:
-    0 12px 30px rgba(11, 59, 50, 0.1);
+  box-shadow: 0 14px 30px rgba(23, 32, 51, 0.1);
 }
 
-/* ============================================================
-   PRODUCT IMAGE
-============================================================ */
-
 .product-image {
-  height: 190px;
-
-  background: #eeeae2;
-
+  height: 180px;
+  background: #f2ede2;
   position: relative;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  overflow: hidden;
 }
 
 .product-image img {
   width: 100%;
-
   height: 100%;
-
   object-fit: cover;
-
-  transition: transform 0.35s ease;
-}
-
-.product-card:hover .product-image img {
-  transform: scale(1.03);
 }
 
 .placeholder-icon {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  width: 100%;
-
-  height: 100%;
-
-  color: var(--browse-muted);
-
-  font-size: 13px;
+  font-size: 14px;
+  color: #9aa0a6;
 }
-
-/* ============================================================
-   STATUS BADGE
-============================================================ */
 
 .badge {
   position: absolute;
-
   top: 12px;
-
   left: 12px;
-
-  padding: 6px 11px;
-
+  padding: 4px 12px;
   border-radius: 20px;
-
-  font-size: 10px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.2px;
-
-  color: #ffffff;
-
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
 }
 
 .badge.verified {
-  background: var(--browse-green);
+  background: #0b3b32;
 }
 
 .badge.pending {
-  background: var(--browse-gold);
-
-  color: #ffffff;
+  background: #e9a11a;
+  color: #172033;
 }
 
-/* ============================================================
-   CARD BODY
-============================================================ */
-
 .card-body {
-  display: flex;
-
-  flex-direction: column;
-
-  flex: 1;
-
-  padding: 17px;
+  padding: 18px;
 }
 
 .card-body h4 {
+  font-size: 15px;
+  font-weight: 700;
   margin: 0;
-
-  color: var(--browse-green);
-
-  font-size: 17px;
-
-  font-weight: 800;
-
-  line-height: 1.3;
+  color: #172033;
 }
 
 .meta {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  gap: 5px;
-
-  margin: 7px 0 0;
-
-  color: var(--browse-muted);
-
-  font-size: 11px;
-
-  line-height: 1.4;
-}
-
-.meta span {
-  color: var(--browse-gold);
-
-  font-weight: 800;
-}
-
-.description {
-  margin: 11px 0 0;
-
-  color: #4b5563;
-
   font-size: 12px;
-
-  line-height: 1.55;
-
-  min-height: 38px;
+  color: #7b8288;
+  margin: 6px 0 0;
 }
 
-/* ============================================================
-   PRICE
-============================================================ */
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+.stars {
+  color: #e9a11a;
+  letter-spacing: 1px;
+  font-size: 11px;
+}
+
+.rating-value {
+  font-weight: 700;
+  color: #172033;
+}
+
+.rating-count {
+  color: #9aa0a6;
+}
 
 .price-row {
   display: flex;
-
   justify-content: space-between;
-
   align-items: center;
-
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
 .price {
-  color: var(--browse-green);
-
-  font-size: 17px;
-
   font-weight: 800;
+  font-size: 18px;
+  color: #0b3b32;
 }
 
-/* ============================================================
-   EARNINGS
-============================================================ */
+.price small {
+  font-weight: 500;
+  font-size: 12px;
+  color: #7b8288;
+}
 
 .earning-hint {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  align-items: center;
-
-  gap: 4px;
-
-  margin-top: 9px;
-
-  padding: 7px 9px;
-
-  border-radius: 7px;
-
-  background: var(--browse-cream);
-
-  color: var(--browse-muted);
-
-  font-size: 10px;
-
-  line-height: 1.5;
+  font-size: 11px;
+  color: #7b8288;
+  margin-top: 8px;
+  background: #f7f3ea;
+  padding: 5px 8px;
+  border-radius: 6px;
 }
-
-.earning-hint strong {
-  color: var(--browse-green);
-}
-
-.earning-divider {
-  color: #c1bcb2;
-}
-
-/* ============================================================
-   BUTTON
-============================================================ */
 
 .btn-small {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  gap: 8px;
-
+  margin-top: 14px;
   width: 100%;
-
-  min-height: 40px;
-
-  margin-top: 13px;
-
-  padding: 8px 12px;
-
-  background: var(--browse-green);
-
-  color: #ffffff;
-
+  height: 38px;
+  background: #172033;
+  color: #fff;
   border: none;
-
   border-radius: 8px;
-
   cursor: pointer;
-
-  font-size: 12px;
-
-  font-weight: 800;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.15s;
 }
 
 .btn-small:hover {
-  background: #075046;
-
-  transform: translateY(-1px);
+  background: #0b3b32;
 }
 
-.button-arrow {
-  font-size: 15px;
+/* ---------------- SKELETON ---------------- */
 
-  transition: transform 0.2s ease;
+.skeleton-card {
+  pointer-events: none;
 }
 
-.btn-small:hover .button-arrow {
-  transform: translateX(3px);
+.skeleton-image {
+  height: 180px;
+  background: linear-gradient(90deg, #f2ede2 25%, #ece5d6 37%, #f2ede2 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
 }
 
-/* ============================================================
-   LOADING / ERROR / EMPTY STATE
-============================================================ */
+.skeleton-line {
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f2ede2 25%, #ece5d6 37%, #f2ede2 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
 
-.state-message {
-  display: flex;
+.skeleton-line-title {
+  width: 70%;
+}
 
-  flex-direction: column;
+.skeleton-line-meta {
+  width: 50%;
+  margin-top: 10px;
+}
 
-  align-items: center;
+.skeleton-line-price {
+  width: 35%;
+  margin-top: 16px;
+  height: 16px;
+}
 
-  justify-content: center;
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
 
-  min-height: 260px;
+/* ---------------- EMPTY STATE ---------------- */
 
-  margin-top: 28px;
-
-  padding: 40px;
-
-  background: #ffffff;
-
-  border: 1px solid var(--browse-border);
-
-  border-radius: 15px;
-
+.empty-state {
+  margin-top: 60px;
+  padding: 60px 20px;
   text-align: center;
-
-  color: var(--browse-muted);
+  border: 1px dashed #dcd7cc;
+  border-radius: 14px;
+  background: white;
 }
 
-.state-message h3 {
-  margin: 12px 0 0;
-
-  color: var(--browse-green);
-
-  font-size: 18px;
-}
-
-.state-message p {
-  max-width: 420px;
-
-  margin: 8px 0 0;
-
-  font-size: 13px;
-
-  line-height: 1.5;
-}
-
-.state-message.error {
-  color: #b42318;
-}
-
-.state-message.error h3 {
-  color: #8f1d15;
-}
-
-.state-icon {
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #f2ede2;
+  color: #e99b13;
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  width: 40px;
-
-  height: 40px;
-
-  border-radius: 50%;
-
-  background: #fce8e6;
-
-  color: #b42318;
-
-  font-size: 20px;
-
-  font-weight: 800;
+  font-size: 1.4rem;
 }
 
-.state-icon.empty {
-  background: var(--browse-green-light);
-
-  color: var(--browse-green);
+.empty-state h3 {
+  margin: 0;
+  color: #0b3b32;
 }
 
-.loading-spinner {
-  width: 30px;
-
-  height: 30px;
-
-  border: 3px solid #e2dfd7;
-
-  border-top-color: var(--browse-green);
-
-  border-radius: 50%;
-
-  animation: spin 0.8s linear infinite;
+.empty-state p {
+  margin: 10px auto 0;
+  max-width: 360px;
+  color: #7b8288;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.btn-empty {
+  display: inline-block;
+  width: auto;
+  padding: 0 22px;
 }
 
-.retry-button {
-  margin-top: 15px;
+/* ---------------- RESPONSIVE ---------------- */
 
-  padding: 10px 18px;
-
-  border: none;
-
-  border-radius: 8px;
-
-  background: var(--browse-green);
-
-  color: #ffffff;
-
-  cursor: pointer;
-
-  font-size: 12px;
-
-  font-weight: 700;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.retry-button:hover {
-  background: #075046;
-
-  transform: translateY(-1px);
-}
-
-/* ============================================================
-   RESPONSIVE — TABLET
-============================================================ */
-
-@media (max-width: 1150px) {
-  .filter-sidebar {
-    width: 270px;
-
-    padding-left: 20px;
-  }
-
-  .product-main {
-    padding-left: 24px;
-
-    padding-right: 24px;
-  }
-
+@media (max-width: 1100px) {
   .grid-three {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* ============================================================
-   RESPONSIVE — SMALL TABLET
-============================================================ */
-
-@media (max-width: 850px) {
+@media (max-width: 768px) {
   .browse-layout {
     flex-direction: column;
   }
 
+  .mobile-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: white;
+    border-bottom: 1px solid #e6e2da;
+  }
+
   .filter-sidebar {
-    width: 100%;
-
-    box-sizing: border-box;
-
-    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 84%;
+    max-width: 320px;
+    z-index: 1100;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
   }
 
-  .filter-card {
-    position: relative;
-
-    top: auto;
-
-    max-height: none;
-
-    overflow: visible;
+  .filter-sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: 20px 0 40px rgba(0, 0, 0, 0.15);
   }
 
-  .product-main {
-    padding: 20px;
+  .close-filters {
+    display: block;
   }
 
-  .grid-three {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* ============================================================
-   RESPONSIVE — MOBILE
-============================================================ */
-
-@media (max-width: 600px) {
-  .filter-sidebar {
-    padding: 14px;
+  .apply-mobile {
+    display: block;
   }
 
-  .filter-card {
-    padding: 17px;
-
-    border-radius: 14px;
-  }
-
-  .filter-heading h3 {
-    font-size: 18px;
-  }
-
-  .product-main {
-    padding: 24px 14px 40px;
-  }
-
-  .browse-header {
-    flex-direction: column;
-
-    align-items: flex-start;
-
-    gap: 14px;
-  }
-
-  .browse-header h2 {
-    font-size: 25px;
-  }
-
-  .browse-header p {
-    font-size: 13px;
-  }
-
-  .item-count {
-    align-self: flex-start;
-  }
-
-  .filter-summary {
-    align-items: flex-start;
-
-    flex-wrap: wrap;
-  }
-
-  .filter-summary button {
-    margin-left: 15px;
+  .filter-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.4);
+    z-index: 1050;
   }
 
   .grid-three {
     grid-template-columns: 1fr;
-
-    gap: 18px;
   }
 
-  .product-image {
-    height: 200px;
+  .product-main {
+    padding: 20px;
+  }
+
+  .browse-header {
+    flex-direction: column;
+  }
+
+  .browse-header-controls {
+    width: 100%;
+  }
+
+  .search-wrap,
+  .search-input {
+    width: 100%;
   }
 }
 </style>

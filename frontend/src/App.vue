@@ -9,19 +9,19 @@ import Chatbot from "./components/Chatbot.vue";
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
-
 const menuOpen = ref(false);
+const profileMenuOpen = ref(false);
+const ownerApprovedKey = "rentosphere-owner-approved";
+const isApprovedOwner = ref(false);
 
-const isAuthenticated = computed(
-  () => store.getters["auth/isAuthenticated"],
-);
-
+const isAuthenticated = computed(() => store.getters["auth/isAuthenticated"]);
 const currentUser = computed(() => store.state.auth.user);
 
-
-const isOwner = computed(() => {
-  return currentUser.value?.role === "owner";
-});
+function syncOwnerState() {
+  isApprovedOwner.value =
+    typeof window !== "undefined" &&
+    window.localStorage.getItem(ownerApprovedKey) === "false";
+}
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
@@ -31,9 +31,23 @@ function closeMenu() {
   menuOpen.value = false;
 }
 
+function toggleProfileMenu() {
+  profileMenuOpen.value = !profileMenuOpen.value;
+}
+
+function closeProfileMenu() {
+  profileMenuOpen.value = false;
+}
+
+const userInitial = computed(() => {
+  const name = currentUser.value?.name || "";
+  return name.trim().charAt(0).toUpperCase() || "?";
+});
+
 function handleEscape(event) {
   if (event.key === "Escape") {
     closeMenu();
+    closeProfileMenu();
   }
 }
 
@@ -47,39 +61,44 @@ function goToSignup() {
   router.push("/signup");
 }
 
-async function handleLogout() {
+function handleLogout() {
   closeMenu();
-
-  await store.dispatch("auth/logout");
-
+  store.dispatch("auth/logout");
   router.push("/");
 }
 
-watch(
-  () => route.fullPath,
-  () => {
-    closeMenu();
-  },
-);
+watch(() => route.fullPath, () => {
+  closeMenu();
+  closeProfileMenu();
+});
+
+function handleOutsideClick(event) {
+  if (profileMenuOpen.value && !event.target.closest(".profile-widget")) {
+    closeProfileMenu();
+  }
+}
 
 onMounted(() => {
+  syncOwnerState();
   document.addEventListener("keydown", handleEscape);
+  document.addEventListener("click", handleOutsideClick);
+  window.addEventListener("owner-state-changed", syncOwnerState);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleEscape);
+  document.removeEventListener("click", handleOutsideClick);
+  window.removeEventListener("owner-state-changed", syncOwnerState);
 });
 </script>
 
 <template>
   <div id="app">
     <header class="navbar">
-      <!-- LOGO -->
       <RouterLink to="/" class="logo-link">
         <img :src="logo" alt="Rentosphere logo" />
       </RouterLink>
 
-      <!-- MOBILE MENU BUTTON -->
       <button
         class="menu-toggle"
         type="button"
@@ -93,23 +112,16 @@ onUnmounted(() => {
         <span></span>
       </button>
 
-      <!-- NAVIGATION -->
       <nav
         id="primary-navigation"
         class="desktop-nav"
         :class="{ 'is-open': menuOpen }"
       >
-        <!-- Everyone -->
-        <RouterLink to="/" @click="closeMenu">
-          Home
-        </RouterLink>
+        <RouterLink to="/" @click="closeMenu">Home</RouterLink>
 
-        <RouterLink to="/browse" @click="closeMenu">
-          Browse
-        </RouterLink>
+        <RouterLink to="/browse" @click="closeMenu">Browse</RouterLink>
 
-        <!-- OWNER NAVIGATION -->
-        <template v-if="isAuthenticated && isOwner">
+        <template v-if="isApprovedOwner">
           <RouterLink to="/my-listings" @click="closeMenu">
             My Listings
           </RouterLink>
@@ -119,7 +131,6 @@ onUnmounted(() => {
           </RouterLink>
         </template>
 
-        <!-- NORMAL USER / VISITOR NAVIGATION -->
         <template v-else>
           <RouterLink to="/how-it-works" @click="closeMenu">
             How It Works
@@ -135,46 +146,50 @@ onUnmounted(() => {
         </template>
       </nav>
 
-      <!-- AUTH BUTTONS -->
       <div class="auth-buttons">
         <template v-if="isAuthenticated">
-          <span class="welcome-text">
-            Hi,
-            {{
-              currentUser?.name?.split(" ")[0] || "there"
-            }}
-          </span>
+          <div class="profile-widget">
+            <button
+              class="profile-avatar"
+              type="button"
+              :aria-expanded="profileMenuOpen"
+              aria-haspopup="true"
+              aria-label="Account menu"
+              @click.stop="toggleProfileMenu"
+            >
+              {{ userInitial }}
+            </button>
 
-          <button
-            class="login-button"
-            type="button"
-            @click="handleLogout"
-          >
-            Log out
-          </button>
+            <div v-if="profileMenuOpen" class="profile-dropdown">
+              <p class="profile-dropdown-name">{{ currentUser?.name || "there" }}</p>
+              <p class="profile-dropdown-email">{{ currentUser?.email }}</p>
+              <hr />
+              <RouterLink
+                v-if="isApprovedOwner"
+                to="/my-listings"
+                class="profile-dropdown-link"
+                @click="closeProfileMenu"
+              >
+                My Listings
+              </RouterLink>
+              <button class="profile-dropdown-logout" @click="handleLogout">
+                Log out
+              </button>
+            </div>
+          </div>
         </template>
-
         <template v-else>
-          <button
-            class="login-button"
-            type="button"
-            @click="goToLogin"
-          >
+          <button class="login-button" @click="goToLogin">
             Log in
           </button>
 
-          <button
-            class="signup-button"
-            type="button"
-            @click="goToSignup"
-          >
+          <button class="signup-button" @click="goToSignup">
             Sign up
           </button>
         </template>
       </div>
     </header>
 
-    <!-- PAGE CONTENT -->
     <main>
       <RouterView />
     </main>
@@ -312,11 +327,81 @@ a {
   gap: 10px;
 }
 
-.welcome-text {
+.profile-widget {
+  position: relative;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: #0b3b32;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  background: white;
+  border: 1px solid #e6e2da;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  z-index: 1100;
+}
+
+.profile-dropdown-name {
   font-size: 0.85rem;
   font-weight: 600;
   color: #111827;
-  margin-right: 4px;
+  margin: 0;
+}
+
+.profile-dropdown-email {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 2px 0 0;
+  word-break: break-all;
+}
+
+.profile-dropdown hr {
+  border: none;
+  border-top: 1px solid #e6e2da;
+  margin: 10px 0;
+}
+
+.profile-dropdown-link {
+  display: block;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  color: #111827;
+  text-decoration: none;
+}
+
+.profile-dropdown-link:hover {
+  color: #0b3b32;
+}
+
+.profile-dropdown-logout {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #b91c1c;
+  font-weight: 600;
 }
 
 .login-button,
