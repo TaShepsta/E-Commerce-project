@@ -1,76 +1,161 @@
-import Listing from '../models/Listing.js';
+import {
+  createOwnerListing,
+  deleteOwnerListing,
+  getListingImage,
+  getOwnerListingById,
+  getOwnerListings,
+  getPublicListings,
+  updateOwnerListing,
+} from "../models/listingsModel.js";
 
-export const createListing = async (req, res) => {
-    try {
-        const { title, description, category, dailyPrice, weeklyPrice, monthlyPrice, location } = req.body;
+function getOwnerId(req) {
+  return Number(req.user.id);
+}
 
-        const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+// =========================================================
+// PUBLIC LISTINGS
+// =========================================================
 
-        if (!title || !dailyPrice) {
-            return res.status(400).json({ message: 'Title and daily price are required.' });
-        }
+export async function getApprovedListings(req, res, next) {
+  try {
+    const listings = await getPublicListings({
+      category: req.query.category,
+      location: req.query.location,
+    });
 
-        const listing = await Listing.create({
-            ownerId: req.user.id,
-            title,
-            description,
-            category,
-            dailyPrice,
-            weeklyPrice,
-            monthlyPrice,
-            location,
-            imageUrl
-        });
+    res.json(listings);
+  } catch (error) {
+    next(error);
+  }
+}
 
-        res.status(201).json({ message: 'Listing created and pending approval.', listing });
-    } catch (err) {
-        console.error('Create listing error:', err);
-        res.status(500).json({ message: 'Something went wrong while creating the listing.' });
+// =========================================================
+// OWNER LISTINGS
+// =========================================================
+
+export async function getMyListings(req, res, next) {
+  try {
+    const listings = await getOwnerListings(getOwnerId(req));
+
+    res.json(listings);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createListing(req, res, next) {
+  try {
+    const listing = await createOwnerListing(
+      {
+        ...req.body,
+        file: req.file || null,
+      },
+      getOwnerId(req),
+    );
+
+    res.status(201).json(listing);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateListing(req, res, next) {
+  try {
+    const listing = await updateOwnerListing(
+      req.params.id,
+      {
+        ...req.body,
+        file: req.file || null,
+      },
+      getOwnerId(req),
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        message: "Listing not found.",
+      });
     }
-};
 
-// Public browse — only approved listings, optionally filtered by category.
-export const getApprovedListings = async (req, res) => {
-    try {
-        const { category } = req.query;
-        const listings = await Listing.findApproved({ category });
-        res.status(200).json({ listings });
-    } catch (err) {
-        console.error('Get listings error:', err);
-        res.status(500).json({ message: 'Something went wrong while fetching listings.' });
+    res.json(listing);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteListing(req, res, next) {
+  try {
+    const removed = await deleteOwnerListing(req.params.id, getOwnerId(req));
+
+    if (!removed) {
+      return res.status(404).json({
+        message: "Listing not found.",
+      });
     }
-};
 
-// The logged-in owner's own listings, any status.
-export const getMyListings = async (req, res) => {
-    try {
-        const listings = await Listing.findByOwnerId(req.user.id);
-        res.status(200).json({ listings });
-    } catch (err) {
-        console.error('Get my listings error:', err);
-        res.status(500).json({ message: 'Something went wrong while fetching your listings.' });
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+
+export async function updateListingStatus(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        message: "Status is required.",
+      });
     }
-};
 
-// Admin-only: approve or reject a pending listing.
-export const updateListingStatus = async (req, res) => {
-    try {
-        const { status } = req.body;
-        const allowedStatuses = ['pending', 'approved', 'rejected', 'inactive'];
+    const allowedStatuses = [
+      "Available",
+      "Paused",
+      "approved",
+      "pending",
+      "rejected",
+      "inactive",
+    ];
 
-        if (!allowedStatuses.includes(status)) {
-            return res.status(400).json({ message: 'Invalid status.' });
-        }
-
-        const listing = await Listing.findById(req.params.id);
-        if (!listing) {
-            return res.status(404).json({ message: 'Listing not found.' });
-        }
-
-        const updated = await Listing.updateStatus(req.params.id, status);
-        res.status(200).json({ message: 'Listing status updated.', listing: updated });
-    } catch (err) {
-        console.error('Update listing status error:', err);
-        res.status(500).json({ message: 'Something went wrong while updating the listing.' });
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        message: "Invalid listing status.",
+      });
     }
-};
+
+    const listing = await updateOwnerListing(id, { status }, null);
+
+    if (!listing) {
+      return res.status(404).json({
+        message: "Listing not found.",
+      });
+    }
+
+    res.json(listing);
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+
+export async function serveListingImage(req, res, next) {
+  try {
+    const image = await getListingImage(req.params.id);
+
+    if (!image?.image_data) {
+      return res.status(404).json({
+        message: "Listing image not found.",
+      });
+    }
+
+    res.setHeader("Content-Type", image.image_mime_type || "image/jpeg");
+
+    res.send(image.image_data);
+  } catch (error) {
+    next(error);
+  }
+}

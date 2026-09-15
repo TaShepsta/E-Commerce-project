@@ -9,9 +9,12 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "rentosphere",
+
   waitForConnections: true,
   connectionLimit: 10,
-  connectTimeout: 5000,
+  queueLimit: 0,
+
+  connectTimeout: 10000,
   dateStrings: true,
 });
 

@@ -1,177 +1,603 @@
-<script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
-
-const router = useRouter()
-const store = useStore()
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const role = ref('renter')
-const error = ref('')
-const isSubmitting = ref(false)
-
-const handleSubmit = async () => {
-  error.value = ''
-  if (!name.value || !email.value || !password.value) {
-    error.value = 'Fill in every field to create your account.'
-    return
-  }
-  if (password.value.length < 8) {
-    error.value = 'Password must be at least 8 characters.'
-    return
-  }
-  if (password.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match.'
-    return
-  }
-
-  isSubmitting.value = true
-  try {
-    await store.dispatch('auth/register', {
-      name: name.value,
-      email: email.value,
-      password: password.value,
-      role: role.value,
-    })
-    router.push(role.value === 'owner' ? '/my-listings' : '/')
-  } catch (err) {
-    error.value = err.message || 'Unable to create your account. Please try again.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-</script>
-
 <template>
-  <section class="auth-page container">
-    <div class="auth-card">
-      <h1>Create your account</h1>
-      <p class="subtitle">Join Rentosphere to rent items or list your own.</p>
+  <main class="signup-page">
 
-      <form @submit.prevent="handleSubmit">
-        <div class="field">
-          <label for="name">Full name</label>
-          <input id="name" v-model="name" type="text" placeholder="Jane Doe" autocomplete="name" />
-        </div>
+```
+<RouterLink to="/" class="back-home">
+  ← Back to Home
+</RouterLink>
 
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" v-model="email" type="email" placeholder="you@example.com" autocomplete="email" />
-        </div>
+<section class="signup-header">
 
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" v-model="password" type="password" placeholder="••••••••" autocomplete="new-password" />
-        </div>
+  <p class="eyebrow">
+    JOIN RENTOSPHERE
+  </p>
 
-        <div class="field">
-          <label for="confirm-password">Confirm password</label>
-          <input id="confirm-password" v-model="confirmPassword" type="password" placeholder="••••••••" autocomplete="new-password" />
-        </div>
+  <h1>
+    How would you like to use
+    <span>Rentosphere?</span>
+  </h1>
 
-        <div class="field">
-          <label>I want to</label>
-          <div class="role-toggle">
-            <button
-              type="button"
-              :class="['role-option', { active: role === 'renter' }]"
-              @click="role = 'renter'"
-            >
-              Rent items
-            </button>
-            <button
-              type="button"
-              :class="['role-option', { active: role === 'owner' }]"
-              @click="role = 'owner'"
-            >
-              List my items
-            </button>
-          </div>
-        </div>
+  <p class="subtitle">
+    Choose how you want to get started.
+    You can rent products or become an owner
+    and earn from the things you already own.
+  </p>
 
-        <p v-if="error" class="form-error">{{ error }}</p>
+</section>
 
-        <button type="submit" class="btn btn-primary btn-block" :disabled="isSubmitting">
-          {{ isSubmitting ? 'Creating account…' : 'Create account' }}
-        </button>
-      </form>
+<section class="signup-options">
 
-      <p class="switch-auth">
-        Already have an account?
-        <router-link to="/login">Log in</router-link>
-      </p>
+  <!-- RENTER -->
+
+  <RouterLink
+    to="/signup/renter"
+    class="signup-card renter-card"
+  >
+
+    <div class="card-icon renter-icon">
+      🛒
     </div>
-  </section>
+
+    <div class="card-content">
+
+      <p class="card-label">
+        I WANT TO RENT
+      </p>
+
+      <h2>
+        Sign up as a Renter
+      </h2>
+
+      <p class="card-description">
+        Find the products you need without
+        having to buy them. Browse verified
+        items, choose your dates and rent
+        with confidence.
+      </p>
+
+      <ul class="benefits">
+
+        <li>
+          <span>✓</span>
+          Browse rental items
+        </li>
+
+        <li>
+          <span>✓</span>
+          Secure online payments
+        </li>
+
+        <li>
+          <span>✓</span>
+          Flexible rental periods
+        </li>
+
+        <li>
+          <span>✓</span>
+          Delivery options available
+        </li>
+
+      </ul>
+
+    </div>
+
+    <div class="card-footer">
+
+      <span>
+        Continue as Renter
+      </span>
+
+      <span class="arrow">
+        →
+      </span>
+
+    </div>
+
+  </RouterLink>
+
+
+  <!-- OWNER -->
+
+  <RouterLink
+    to="/signup/owner"
+    class="signup-card owner-card"
+  >
+
+    <div class="card-icon owner-icon">
+      💰
+    </div>
+
+    <div class="card-content">
+
+      <p class="card-label">
+        I WANT TO EARN
+      </p>
+
+      <h2>
+        Sign up as an Owner
+      </h2>
+
+      <p class="card-description">
+        Turn the things you already own into
+        extra income. List your products and
+        let renters discover and book them.
+      </p>
+
+      <ul class="benefits">
+
+        <li>
+          <span>✓</span>
+          List your items easily
+        </li>
+
+        <li>
+          <span>✓</span>
+          We help verify your products
+        </li>
+
+        <li>
+          <span>✓</span>
+          Set your own rental prices
+        </li>
+
+        <li>
+          <span>✓</span>
+          Receive secure payments
+        </li>
+
+      </ul>
+
+    </div>
+
+    <div class="card-footer">
+
+      <span>
+        Continue as Owner
+      </span>
+
+      <span class="arrow">
+        →
+      </span>
+
+    </div>
+
+  </RouterLink>
+
+</section>
+
+<section class="login-section">
+
+  <p>
+    Already have an account?
+  </p>
+
+  <RouterLink to="/login">
+    Log in
+  </RouterLink>
+
+</section>
+```
+
+  </main>
 </template>
 
 <style scoped>
-.auth-page {
-  display: flex;
-  justify-content: center;
-  padding: 72px 24px;
+
+.back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #063b2f;
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  margin-bottom: 35px;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.auth-card {
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 40px 32px;
-  box-shadow: var(--shadow-card);
+.back-home:hover {
+  color: #f5a000;
+  transform: translateX(-3px);
+}
+
+.signup-page {
+  min-height: calc(100vh - 72px);
+
+  background: #ffffff;
+
+  padding: 70px 40px 80px;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  box-sizing: border-box;
+}
+
+.signup-header {
+  max-width: 800px;
+
+  margin: 0 auto 55px;
+
   text-align: center;
 }
 
-.auth-card h1 {
-  font-size: 1.7rem;
+.eyebrow {
+  margin: 0 0 14px;
+
+  color: #f5a000;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  letter-spacing: 1.5px;
+}
+
+.signup-header h1 {
+  margin: 0;
+
+  color: #101010;
+
+  font-size: clamp(38px, 5vw, 58px);
+
+  line-height: 1.05;
+
+  font-weight: 800;
+
+  letter-spacing: -2px;
+}
+
+.signup-header h1 span {
+  color: #063b2f;
 }
 
 .subtitle {
-  margin: 10px 0 28px;
+  max-width: 650px;
+
+  margin: 22px auto 0;
+
+  color: #555555;
+
+  font-size: 17px;
+
+  line-height: 1.6;
 }
 
-form {
-  text-align: left;
+.signup-options {
+  max-width: 1050px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 30px;
 }
 
-.form-error {
-  color: #b3261e;
-  font-size: 0.85rem;
-  margin: -6px 0 14px;
-}
+.signup-card {
+  position: relative;
 
-.switch-auth {
-  margin-top: 22px;
-  font-size: 0.9rem;
-}
+  min-height: 480px;
 
-.switch-auth a {
-  color: var(--color-primary);
-  font-weight: 600;
-}
+  padding: 38px;
 
-.role-toggle {
+  box-sizing: border-box;
+
+  border-radius: 22px;
+
+  border: 1px solid #e4e4e4;
+
+  text-decoration: none;
+
+  color: #111111;
+
   display: flex;
-  gap: 8px;
+
+  flex-direction: column;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 
-.role-option {
+.signup-card:hover {
+  transform: translateY(-7px);
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.10);
+
+  border-color: #063b2f;
+}
+
+.renter-card {
+  background: #ffffff;
+}
+
+.owner-card {
+  background: #063b2f;
+
+  color: #ffffff;
+
+  border-color: #063b2f;
+}
+
+.owner-card:hover {
+  box-shadow:
+    0 20px 50px rgba(6, 59, 47, 0.25);
+}
+
+.card-icon {
+  width: 65px;
+
+  height: 65px;
+
+  border-radius: 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 30px;
+
+  margin-bottom: 28px;
+}
+
+.renter-icon {
+  background: #f5f0e7;
+}
+
+.owner-icon {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.card-content {
   flex: 1;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: #fff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--color-text);
 }
 
-.role-option.active {
-  border-color: var(--color-primary);
-  background: rgba(11, 59, 50, 0.08);
-  color: var(--color-primary);
+.card-label {
+  margin: 0 0 10px;
+
+  color: #f5a000;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
 }
+
+.card-content h2 {
+  margin: 0 0 16px;
+
+  font-size: 30px;
+
+  line-height: 1.15;
+
+  font-weight: 750;
+}
+
+.card-description {
+  max-width: 440px;
+
+  margin: 0 0 25px;
+
+  font-size: 15px;
+
+  line-height: 1.65;
+
+  color: #555555;
+}
+
+.owner-card .card-description {
+  color: #dce8e4;
+}
+
+.benefits {
+  padding: 0;
+
+  margin: 0;
+
+  list-style: none;
+}
+
+.benefits li {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 13px;
+
+  font-size: 14px;
+
+  color: #333333;
+}
+
+.owner-card .benefits li {
+  color: #ffffff;
+}
+
+.benefits li span {
+  width: 21px;
+
+  height: 21px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #2f7d45;
+
+  color: #ffffff;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+.card-footer {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-top: 30px;
+
+  padding-top: 22px;
+
+  border-top: 1px solid #e5e5e5;
+
+  font-size: 15px;
+
+  font-weight: 700;
+}
+
+.owner-card .card-footer {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+.arrow {
+  width: 38px;
+
+  height: 38px;
+
+  border-radius: 50%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #f5a000;
+
+  color: #111111;
+
+  font-size: 20px;
+
+  transition: transform 0.2s ease;
+}
+
+.signup-card:hover .arrow {
+  transform: translateX(5px);
+}
+
+.login-section {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 45px;
+
+  font-size: 14px;
+
+  color: #555555;
+}
+
+.login-section a {
+  color: #063b2f;
+
+  font-weight: 700;
+
+  text-decoration: none;
+}
+
+.login-section a:hover {
+  color: #f5a000;
+}
+
+@media (max-width: 850px) {
+
+  .signup-page {
+    padding: 55px 25px 70px;
+  }
+
+  .signup-options {
+    grid-template-columns: 1fr;
+
+    max-width: 600px;
+  }
+
+  .signup-card {
+    min-height: 430px;
+  }
+
+}
+
+@media (max-width: 550px) {
+
+  .signup-page {
+    padding: 40px 18px 60px;
+  }
+
+  .signup-header {
+    margin-bottom: 35px;
+  }
+
+  .signup-header h1 {
+    font-size: 38px;
+
+    letter-spacing: -1.5px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .signup-options {
+    gap: 20px;
+  }
+
+  .signup-card {
+    min-height: auto;
+
+    padding: 28px;
+
+    border-radius: 18px;
+  }
+
+  .card-icon {
+    width: 58px;
+
+    height: 58px;
+
+    font-size: 26px;
+  }
+
+  .card-content h2 {
+    font-size: 26px;
+  }
+
+  .card-description {
+    font-size: 14px;
+  }
+
+}
+
 </style>

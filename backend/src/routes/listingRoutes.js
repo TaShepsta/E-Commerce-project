@@ -1,48 +1,48 @@
-import express from 'express';
-import multer from 'multer';
+import express from "express";
+import multer from "multer";
+
+import {
+  createListing,
+  getApprovedListings,
+  getMyListings,
+  updateListingStatus,
+} from "../controllers/listingController.js";
+
+import authenticate from "../middleware/auth.js";
+import roleCheck from "../middleware/roleCheck.js";
 
 const router = express.Router();
 
-import {
-    createListing,
-    getApprovedListings,
-    getMyListings,
-    updateListingStatus
-} from '../controllers/listingController.js';
-
-import authenticate from '../middleware/auth.js';
-import roleCheck from '../middleware/roleCheck.js';
-
-// Store uploaded images in backend/uploads/
 const upload = multer({
-    dest: 'uploads/'
+  dest: "uploads/",
 });
 
-// Public browse — no login required.
-router.get('/', getApprovedListings);
+// Public browse
+router.get("/", getApprovedListings);
 
-// Owner-only — image upload supported.
+// Owner creates a listing
 router.post(
-    '/',
-    authenticate,
-    roleCheck('owner', 'admin'),
-    upload.single('image'),
-    createListing
+  "/",
+  authenticate,
+  roleCheck("owner", "admin"),
+  upload.single("image"),
+  createListing
 );
 
+// Owner's listings
 router.get(
-    '/mine',
-    authenticate,
-    roleCheck('owner', 'admin'),
-    getMyListings
+  "/mine",
+  authenticate,
+  roleCheck("owner", "admin"),
+  getMyListings
 );
 
-// Admin-only — approve/reject a listing.
+// Admin approves/rejects listing
 router.patch(
-    '/:id/status',
-    authenticate,
-    roleCheck('admin'),
-    updateListingStatus
+  "/:id/status",
+  authenticate,
+  roleCheck("admin"),
+  updateListingStatus
 );
 
 export default router;

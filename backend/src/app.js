@@ -1,191 +1,226 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
-import authRoutes from './routes/authRoutes.js';
-import listingRoutes from './routes/listingRoutes.js';
-import bookingRoutes from './routes/bookingRoutes.js';
+import authRoutes from "./routes/authRoutes.js";
+import listingRoutes from "./routes/listingRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
+import earningsRoutes from "./routes/earningsRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
-import listingsRoutes from './routes/listingsRoutes.js';
-import earningsRoutes from './routes/earningsRoutes.js';
-import chatRoutes from './routes/chatRoutes.js';
-
-import errorHandler, { notFound } from './middleware/errorHandler.js';
-import pool from './config/db.js';
+import errorHandler, { notFound } from "./middleware/errorHandler.js";
+import pool from "./config/db.js";
 
 const app = express();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-function extractLocation(description = '') {
-    const match = description.match(/^Location:\s*([^\n]+)/i);
-    return match ? match[1].trim() : '';
-}
+app.use(
+  cors({
+    origin: true,
+    credentials: false,
+  }),
+);
 
-function formatProduct(listing) {
-    const description = listing.description || '';
+app.use(express.json({ limit: "10mb" }));
 
-    const normalizedDescription = description
-        .replace(/^Location:\s*[^\n]+\n\s*/i, '')
-        .trim();
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "10mb",
+  }),
+);
 
-    return {
-        id: listing.id,
-        title: listing.name,
-        name: listing.name,
-        category: listing.category,
-        description: normalizedDescription,
-        location: extractLocation(description),
-        status:
-            listing.status === 'Available'
-                ? 'Safety Verified'
-                : listing.status,
-        price_per_day: Number(listing.price),
-        price: Number(listing.price),
-        image_url: listing.image,
-        image: listing.image,
-        imageAlt: listing.imageAlt,
-        image_alt: listing.imageAlt,
-    };
-};
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "../uploads")),
+);
 
-// Health check
-app.get('/api/health', async (req, res) => {
-    try {
-        const ownerId = Number(process.env.OWNER_ID || 1);
 
-        const [[counts]] = await pool.query(
-            `SELECT
-                (SELECT COUNT(*) FROM listings WHERE owner_id = ?) AS listings,
-                (SELECT COUNT(*) FROM rental_earnings WHERE owner_id = ?) AS earnings`,
-            [ownerId, ownerId]
-        );
 
-        res.json({
-            status: 'ok',
-            database: 'connected',
-            databaseName: process.env.DB_NAME || 'rentosphere',
-            listings: Number(counts.listings),
-            earnings: Number(counts.earnings),
-        });
-    } catch (error) {
-        console.error(
-            'Database health check failed:',
-            error.code || error.message
-        );
+app.get("/api/health", async (_req, res) => {
+  try {
+    const connection = await pool.getConnection();
 
-        res.status(503).json({
-            status: 'degraded',
-            database: 'unavailable',
-            message:
-                error.code ||
-                'Check MySQL and backend/.env',
-        });
-    }
-});
+    await connection.ping();
+    connection.release();
 
-// Listing image
-app.get('/api/listings/:id/image', async (req, res, next) => {
-    try {
-        const [rows] = await pool.query(
-            'SELECT image_data, image_mime_type FROM listings WHERE id = ?',
-            [req.params.id]
-        );
+    const [[listings]] = await pool.query(
+      "SELECT COUNT(*) AS count FROM listings",
+    );
 
-        const listing = rows[0];
+    const [[earnings]] = await pool.query(
+      "SELECT COUNT(*) AS count FROM rental_earnings",
+    );
 
-        if (!listing || !listing.image_data) {
-            return res.status(404).json({
-                message: 'Listing image not found',
-            });
-        }
+    const [[products]] = await pool.query(
+      "SELECT COUNT(*) AS count FROM products",
+    );
 
-        res.setHeader(
-            'Content-Type',
-            listing.image_mime_type || 'image/jpeg'
-        );
-
-        res.send(listing.image_data);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// Products
-app.get('/api/products', async (req, res, next) => {
-    try {
-        const ownerId = Number(process.env.OWNER_ID || 1);
-
-        const [rows] = await pool.query(
-            `SELECT
-                id,
-                owner_id AS ownerId,
-                title AS name,
-                description,
-                category,
-                daily_price AS price,
-                price_unit AS priceUnit,
-                status,
-                image_url AS image,
-                image_alt AS imageAlt,
-                created_at AS createdAt
-             FROM listings
-             WHERE owner_id = ?
-             ORDER BY created_at DESC`,
-            [ownerId]
-        );
-
-        const requestedStatus = String(
-            req.query.status || ''
-        ).trim();
-
-        const items = rows.map(formatProduct);
-
-        const filteredItems = requestedStatus
-            ? items.filter(
-                  (item) => item.status === requestedStatus
-              )
-            : items;
-
-        res.json(filteredItems);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// Existing routes from develop
-app.use('/api/auth', authRoutes);
-app.use('/api/listings', listingRoutes);
-app.use('/api/bookings', bookingRoutes);
-
-// Additional routes from saajidah-dev
-app.use('/api/listings/manage', listingsRoutes);
-app.use('/api/earnings', earningsRoutes);
-
-// Rentosphere Assistant chatbot
-app.use('/api/chat', chatRoutes);
-
-// Root route
-app.get('/', (req, res) => {
     res.json({
-        message: 'E-commerce backend is running!',
+      status: "ok",
+      database: "connected",
+      databaseName: process.env.DB_NAME || "rentosphere",
+      listings: Number(listings.count),
+      earnings: Number(earnings.count),
+      products: Number(products.count),
     });
+  } catch (error) {
+    console.error(
+      "Database health check failed:",
+      error.code || error.message,
+    );
+
+    res.status(503).json({
+      status: "degraded",
+      database: "unavailable",
+      message: error.code || error.message,
+    });
+  }
 });
 
-// 404 handler
+
+
+app.get("/api/products", async (req, res, next) => {
+  try {
+    const { category, location } = req.query;
+
+    let sql = `
+      SELECT
+        id,
+        title,
+        category,
+        price_per_day,
+        location,
+        description,
+        image_url,
+        status
+      FROM products
+      WHERE status = 'Safety Verified'
+    `;
+
+    const values = [];
+
+    if (category) {
+      sql += " AND category = ?";
+      values.push(category);
+    }
+
+    if (location) {
+      sql += " AND location LIKE ?";
+      values.push(`%${location}%`);
+    }
+
+    sql += " ORDER BY id DESC";
+
+    const [rows] = await pool.query(sql, values);
+
+    res.json(rows);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+
+app.get("/api/products/:id", async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      `
+        SELECT
+          id,
+          title,
+          category,
+          price_per_day,
+          location,
+          description,
+          image_url,
+          status
+        FROM products
+        WHERE id = ?
+          AND status = 'Safety Verified'
+        LIMIT 1
+      `,
+      [req.params.id],
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Product not found.",
+      });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+
+app.get("/api/listings/:id/image", async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      `
+        SELECT
+          image_data,
+          image_mime_type
+        FROM listings
+        WHERE id = ?
+      `,
+      [req.params.id],
+    );
+
+    const listing = rows[0];
+
+    if (!listing?.image_data) {
+      return res.status(404).json({
+        message: "Listing image not found.",
+      });
+    }
+
+    res.setHeader(
+      "Content-Type",
+      listing.image_mime_type || "image/jpeg",
+    );
+
+    res.send(listing.image_data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+
+app.use("/api/auth", authRoutes);
+
+app.use("/api/listings", listingRoutes);
+
+app.use("/api/bookings", bookingRoutes);
+
+app.use("/api/earnings", earningsRoutes);
+
+app.use("/api/chat", chatRoutes);
+
+
+
+app.get("/", (_req, res) => {
+  res.json({
+    message: "Rentosphere API is running.",
+  });
+});
+
+
 app.use(notFound);
 
-// Error handler
 app.use(errorHandler);
 
 export default app;
+

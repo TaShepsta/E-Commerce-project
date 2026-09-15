@@ -1,67 +1,123 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-const OWNER_APPROVED_KEY = "rentosphere-owner-approved";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-function markOwnerApproved() {
-  if (typeof window === "undefined") return;
+const TOKEN_KEY = "rentosphere_token";
 
-  window.localStorage.setItem(OWNER_APPROVED_KEY, "true");
-  window.dispatchEvent(
-    new CustomEvent("owner-state-changed", { detail: true }),
+
+function getToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return (
+    window.localStorage.getItem(TOKEN_KEY) ||
+    window.sessionStorage.getItem(TOKEN_KEY)
   );
 }
 
+
+
 async function request(path, options = {}) {
-  const isFormData = options.body instanceof FormData;
+  const token = getToken();
+
+  const isFormData =
+    typeof FormData !== "undefined" &&
+    options.body instanceof FormData;
+
+  const headers = {
+    ...(isFormData
+      ? {}
+      : {
+          "Content-Type": "application/json",
+        }),
+
+    ...(token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {}),
+
+    ...(options.headers || {}),
+  };
 
   let response;
+
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: isFormData
-        ? options.headers
-        : {
-            "Content-Type": "application/json",
-            ...options.headers,
-          },
       ...options,
+      headers,
     });
-  } catch {
+  } catch (error) {
+    console.error("API connection error:", error);
+
     throw new Error(
-      "Unable to connect to the backend. Start it with npm run backend.",
+      "Unable to connect to the backend. Make sure the backend is running on port 5000.",
     );
   }
 
+  const data = await response.json().catch(() => null);
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
     throw new Error(
-      error.message ||
-        error.errors?.join(". ") ||
+      data?.message ||
+        data?.errors?.join(". ") ||
         `Request failed with status ${response.status}`,
     );
   }
 
-  return response.status === 204 ? null : response.json();
+  return response.status === 204 ? null : data;
 }
 
-export const listingsApi = {
-  getAll: () => request("/listings"),
-  create: async (payload) => {
-    const createdListing = await request("/listings", {
-      method: "POST",
-      body: payload,
-    });
 
-    markOwnerApproved();
 
-    return createdListing;
-  },
-  update: (id, payload) =>
-    request(`/listings/${id}`, {
-      method: "PUT",
-      body: payload,
-    }),
-  remove: (id) => request(`/listings/${id}`, { method: "DELETE" }),
+export const productsApi = {
+  // Get all safety-verified products
+  getAll: () => request("/products"),
+
+  // Get one safety-verified product
+  getById: (id) => request(`/products/${id}`),
 };
 
+
+
+export const listingsApi = {
+  // Public listings
+  getPublic: () => request("/listings"),
+
+  // Logged-in owner's listings
+  getMine: () => request("/listings/mine"),
+
+  // Create owner listing
+  create: (payload) =>
+    request("/listings", {
+      method: "POST",
+      body: payload,
+    }),
+
+  // Update owner listing
+  update: (id, payload) => {
+    if (payload instanceof FormData) {
+      return request(`/listings/${id}`, {
+        method: "PUT",
+        body: payload,
+      });
+    }
+
+    return request(`/listings/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // Delete owner listing
+  remove: (id) =>
+    request(`/listings/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+
 export const earningsApi = {
+  // Logged-in owner's earnings
   get: () => request("/earnings"),
 };

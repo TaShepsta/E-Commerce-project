@@ -270,7 +270,7 @@ async function loadListings() {
   loading.value = true;
   loadError.value = "";
   try {
-    ownerListings.value = await listingsApi.getAll();
+    ownerListings.value = await listingsApi.getMine();
   } catch (error) {
     loadError.value = error.message;
   } finally {

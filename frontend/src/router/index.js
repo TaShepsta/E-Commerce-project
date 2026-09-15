@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+import RenterSignupView from "../views/RenterSignupView.vue";
+import OwnerSignupView from "../views/OwnerSignupView.vue";
 import HomeView from "../views/HomeView.vue";
 import AboutView from "../views/AboutView.vue";
-import CategoriesView from "../views/CategoriesView.vue";
 import HowItWorksView from "../views/HowItWorksView.vue";
 import BrowseView from "../views/BrowseView.vue";
 import MyEarningsView from "../views/MyEarningsView.vue";
@@ -31,12 +32,6 @@ const router = createRouter({
       path: "/browse",
       name: "browse",
       component: BrowseView,
-    },
-
-    {
-      path: "/categories",
-      name: "categories",
-      component: CategoriesView,
     },
 
     {
@@ -91,6 +86,18 @@ const router = createRouter({
       path: "/signup",
       name: "signup",
       component: SignupView,
+    },
+
+    {
+      path: "/signup/renter",
+      name: "signup-renter",
+      component: RenterSignupView,
+    },
+
+    {
+      path: "/signup/owner",
+      name: "signup-owner",
+      component: OwnerSignupView,
     },
 
     {

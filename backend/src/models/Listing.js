@@ -1,55 +1,109 @@
-import pool from '../config/db.js';
+import pool from "../config/db.js";
 
 const Listing = {
-    async create({ ownerId, title, description, category, dailyPrice, weeklyPrice, monthlyPrice, location, imageUrl }) {
-        const [result] = await pool.query(
-            `INSERT INTO listings
-                (owner_id, title, description, category, daily_price, weekly_price, monthly_price, location, image_url)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [ownerId, title, description, category, dailyPrice, weeklyPrice || null, monthlyPrice || null, location, imageUrl]
-        );
-        return this.findById(result.insertId);
-    },
+  async create({
+    ownerId,
+    title,
+    description,
+    category,
+    dailyPrice,
+    weeklyPrice = null,
+    monthlyPrice = null,
+    location = null,
+    imageUrl = null,
+  }) {
+    const [result] = await pool.query(
+      `
+      INSERT INTO listings (
+        owner_id,
+        title,
+        description,
+        category,
+        daily_price,
+        weekly_price,
+        monthly_price,
+        location,
+        image_url
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        ownerId,
+        title,
+        description,
+        category,
+        dailyPrice,
+        weeklyPrice,
+        monthlyPrice,
+        location,
+        imageUrl,
+      ],
+    );
 
-    async findById(id) {
-        const [rows] = await pool.query(
-            'SELECT * FROM listings WHERE id = ?',
-            [id]
-        );
-        return rows[0] || null;
-    },
+    return this.findById(result.insertId);
+  },
 
-    // All listings belonging to one owner (used to restore "my listings" on login).
-    async findByOwnerId(ownerId) {
-        const [rows] = await pool.query(
-            'SELECT * FROM listings WHERE owner_id = ? ORDER BY created_at DESC',
-            [ownerId]
-        );
-        return rows;
-    },
+  async findById(id) {
+    const [rows] = await pool.query(
+      `
+      SELECT *
+      FROM listings
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [id],
+    );
 
-    // Public browse/search — only approved listings should ever show up here.
-    async findApproved({ category } = {}) {
-        if (category) {
-            const [rows] = await pool.query(
-                "SELECT * FROM listings WHERE status = 'approved' AND category = ? ORDER BY created_at DESC",
-                [category]
-            );
-            return rows;
-        }
-        const [rows] = await pool.query(
-            "SELECT * FROM listings WHERE status = 'approved' ORDER BY created_at DESC"
-        );
-        return rows;
-    },
+    return rows[0] || null;
+  },
 
-    async updateStatus(id, status) {
-        await pool.query(
-            'UPDATE listings SET status = ? WHERE id = ?',
-            [status, id]
-        );
-        return this.findById(id);
+  async findByOwnerId(ownerId) {
+    const [rows] = await pool.query(
+      `
+      SELECT *
+      FROM listings
+      WHERE owner_id = ?
+      ORDER BY created_at DESC
+      `,
+      [ownerId],
+    );
+
+    return rows;
+  },
+
+  async findApproved({ category } = {}) {
+    let query = `
+      SELECT *
+      FROM listings
+      WHERE status IN ('approved', 'Available')
+    `;
+
+    const params = [];
+
+    if (category) {
+      query += ` AND category = ?`;
+      params.push(category);
     }
+
+    query += ` ORDER BY created_at DESC`;
+
+    const [rows] = await pool.query(query, params);
+
+    return rows;
+  },
+
+  async updateStatus(id, status) {
+    await pool.query(
+      `
+      UPDATE listings
+      SET status = ?
+      WHERE id = ?
+      `,
+      [status, id],
+    );
+
+    return this.findById(id);
+  },
 };
 
 export default Listing;

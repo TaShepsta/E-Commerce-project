@@ -19,12 +19,6 @@ const year = new Date().getFullYear()
       </div>
 
       <div class="footer-col">
-        <h4>Browse</h4>
-        <router-link to="/browse">All Products</router-link>
-        <router-link to="/categories">Categories</router-link>
-      </div>
-
-      <div class="footer-col">
         <h4>Account</h4>
         <router-link to="/login">Log in</router-link>
         <router-link to="/signup">Sign up</router-link>

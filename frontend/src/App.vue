@@ -9,18 +9,19 @@ import Chatbot from "./components/Chatbot.vue";
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
-const menuOpen = ref(false);
-const ownerApprovedKey = "rentosphere-owner-approved";
-const isApprovedOwner = ref(false);
 
-const isAuthenticated = computed(() => store.getters["auth/isAuthenticated"]);
+const menuOpen = ref(false);
+
+const isAuthenticated = computed(
+  () => store.getters["auth/isAuthenticated"],
+);
+
 const currentUser = computed(() => store.state.auth.user);
 
-function syncOwnerState() {
-  isApprovedOwner.value =
-    typeof window !== "undefined" &&
-    window.localStorage.getItem(ownerApprovedKey) === "false";
-}
+
+const isOwner = computed(() => {
+  return currentUser.value?.role === "owner";
+});
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
@@ -31,7 +32,9 @@ function closeMenu() {
 }
 
 function handleEscape(event) {
-  if (event.key === "Escape") closeMenu();
+  if (event.key === "Escape") {
+    closeMenu();
+  }
 }
 
 function goToLogin() {
@@ -44,33 +47,39 @@ function goToSignup() {
   router.push("/signup");
 }
 
-function handleLogout() {
+async function handleLogout() {
   closeMenu();
-  store.dispatch("auth/logout");
+
+  await store.dispatch("auth/logout");
+
   router.push("/");
 }
 
-watch(() => route.fullPath, closeMenu);
+watch(
+  () => route.fullPath,
+  () => {
+    closeMenu();
+  },
+);
 
 onMounted(() => {
-  syncOwnerState();
   document.addEventListener("keydown", handleEscape);
-  window.addEventListener("owner-state-changed", syncOwnerState);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleEscape);
-  window.removeEventListener("owner-state-changed", syncOwnerState);
 });
 </script>
 
 <template>
   <div id="app">
     <header class="navbar">
+      <!-- LOGO -->
       <RouterLink to="/" class="logo-link">
         <img :src="logo" alt="Rentosphere logo" />
       </RouterLink>
 
+      <!-- MOBILE MENU BUTTON -->
       <button
         class="menu-toggle"
         type="button"
@@ -84,20 +93,23 @@ onUnmounted(() => {
         <span></span>
       </button>
 
+      <!-- NAVIGATION -->
       <nav
         id="primary-navigation"
         class="desktop-nav"
         :class="{ 'is-open': menuOpen }"
       >
-        <RouterLink to="/" @click="closeMenu">Home</RouterLink>
-
-        <RouterLink to="/browse" @click="closeMenu">Browse</RouterLink>
-
-        <RouterLink to="/categories" @click="closeMenu">
-          Categories
+        <!-- Everyone -->
+        <RouterLink to="/" @click="closeMenu">
+          Home
         </RouterLink>
 
-        <template v-if="isApprovedOwner">
+        <RouterLink to="/browse" @click="closeMenu">
+          Browse
+        </RouterLink>
+
+        <!-- OWNER NAVIGATION -->
+        <template v-if="isAuthenticated && isOwner">
           <RouterLink to="/my-listings" @click="closeMenu">
             My Listings
           </RouterLink>
@@ -107,6 +119,7 @@ onUnmounted(() => {
           </RouterLink>
         </template>
 
+        <!-- NORMAL USER / VISITOR NAVIGATION -->
         <template v-else>
           <RouterLink to="/how-it-works" @click="closeMenu">
             How It Works
@@ -122,23 +135,46 @@ onUnmounted(() => {
         </template>
       </nav>
 
+      <!-- AUTH BUTTONS -->
       <div class="auth-buttons">
         <template v-if="isAuthenticated">
-          <span class="welcome-text">Hi, {{ currentUser?.name?.split(" ")[0] || "there" }}</span>
-          <button class="login-button" @click="handleLogout">Log out</button>
+          <span class="welcome-text">
+            Hi,
+            {{
+              currentUser?.name?.split(" ")[0] || "there"
+            }}
+          </span>
+
+          <button
+            class="login-button"
+            type="button"
+            @click="handleLogout"
+          >
+            Log out
+          </button>
         </template>
+
         <template v-else>
-          <button class="login-button" @click="goToLogin">
+          <button
+            class="login-button"
+            type="button"
+            @click="goToLogin"
+          >
             Log in
           </button>
 
-          <button class="signup-button" @click="goToSignup">
+          <button
+            class="signup-button"
+            type="button"
+            @click="goToSignup"
+          >
             Sign up
           </button>
         </template>
       </div>
     </header>
 
+    <!-- PAGE CONTENT -->
     <main>
       <RouterView />
     </main>

@@ -10,7 +10,7 @@ export const createBooking = async (req, res) => {
         }
 
         const listing = await Listing.findById(listingId);
-        if (!listing || listing.status !== 'approved') {
+        if (!listing || !["approved", "Available"].includes(listing.status)) {
             return res.status(404).json({ message: 'Listing not found or not available for booking.' });
         }
 

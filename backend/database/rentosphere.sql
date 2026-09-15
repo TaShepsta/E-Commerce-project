@@ -1,33 +1,15 @@
--- ============================================================
--- RENTOSPHERE DATABASE SCHEMA
---
--- Run this once against a fresh database to create every table
--- the backend needs:
---   users            - everyone who signs up (renters and owners)
---   listings         - the products/items an owner is renting out
---   bookings         - the orders a renter makes against a listing
---   favorites        - a renter's saved/"interested in" listings
---   rental_earnings  - money an owner has earned from bookings
---
--- Usage:
---   mysql -u root -p < schema.sql
--- or paste the contents into MySQL Workbench / phpMyAdmin / TablePlus.
--- ============================================================
 
-CREATE DATABASE IF NOT EXISTS rentosphere;
+
+DROP DATABASE IF EXISTS rentosphere;
+CREATE DATABASE rentosphere
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 
 USE rentosphere;
 
 
--- ============================================================
--- USERS
--- Every account — renters, owners, and admins — lives in one
--- table, distinguished by `role`. This is what gets checked on
--- login, and what a listing/booking/favorite is linked back to.
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
@@ -35,70 +17,68 @@ CREATE TABLE IF NOT EXISTS users (
     role ENUM('owner', 'renter', 'admin')
         NOT NULL DEFAULT 'renter',
 
-    -- used by the forgot/reset password flow
     reset_token_hash VARCHAR(255) NULL,
     reset_token_expires DATETIME NULL,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
 
 
--- ============================================================
--- LISTINGS
--- The products/equipment an owner is renting out. One row per
--- item. `status` is free text on purpose — different parts of
--- the app currently write different values here ('pending' /
--- 'approved' for the admin-review flow, 'Available' / 'Rented'
--- for the owner's own dashboard) — see the note at the bottom
--- of this file.
--- ============================================================
 
-CREATE TABLE IF NOT EXISTS listings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE listings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    owner_id INT NOT NULL,
+    owner_id INT UNSIGNED NOT NULL,
 
     title VARCHAR(150) NOT NULL,
-    description TEXT,
-    category VARCHAR(100),
+    description TEXT NULL,
+    category VARCHAR(100) NOT NULL,
 
-    -- pricing
     daily_price DECIMAL(10,2) NOT NULL,
-    weekly_price DECIMAL(10,2),
-    monthly_price DECIMAL(10,2),
-    price_unit VARCHAR(20) NOT NULL DEFAULT 'day',
+    weekly_price DECIMAL(10,2) NULL,
+    monthly_price DECIMAL(10,2) NULL,
+    price_unit ENUM('day', 'week', 'month') NOT NULL DEFAULT 'day',
 
-    location VARCHAR(150),
+    location VARCHAR(150) NULL,
 
-    -- a listing's photo can come from either an uploaded file
-    -- (backend/uploads/, referenced by image_url) or a browser
-    -- upload stored directly in the database (image_data)
-    image_url VARCHAR(255),
-    image_data LONGBLOB,
-    image_mime_type VARCHAR(100),
-    image_alt VARCHAR(255),
+    image_url VARCHAR(500) NULL,
+    image_data LONGBLOB NULL,
+    image_mime_type VARCHAR(100) NULL,
+    image_alt VARCHAR(255) NULL,
 
-    status VARCHAR(30) NOT NULL DEFAULT 'pending',
+    status ENUM(
+        'Available',
+        'Paused',
+        'pending',
+        'approved',
+        'rejected',
+        'inactive'
+    ) NOT NULL DEFAULT 'Available',
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (owner_id)
+    CONSTRAINT fk_listings_owner
+        FOREIGN KEY (owner_id)
         REFERENCES users(id)
         ON DELETE CASCADE
-);
+) ENGINE=InnoDB;
 
+CREATE INDEX idx_listings_owner ON listings(owner_id);
+CREATE INDEX idx_listings_status ON listings(status);
+CREATE INDEX idx_listings_category ON listings(category);
+CREATE INDEX idx_listings_location ON listings(location);
 
 -- ============================================================
--- BOOKINGS
--- A renter's orders — one row per rental booking made against
--- a listing.
+-- 3. BOOKINGS
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS bookings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE bookings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    listing_id INT NOT NULL,
-    renter_id INT NOT NULL,
+    listing_id INT UNSIGNED NOT NULL,
+    renter_id INT UNSIGNED NOT NULL,
 
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
@@ -113,126 +93,105 @@ CREATE TABLE IF NOT EXISTS bookings (
         'cancelled'
     ) NOT NULL DEFAULT 'pending_payment',
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (listing_id)
+    CONSTRAINT fk_bookings_listing
+        FOREIGN KEY (listing_id)
         REFERENCES listings(id)
         ON DELETE CASCADE,
 
-    FOREIGN KEY (renter_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
-);
-
-
--- ============================================================
--- FAVORITES
--- A renter's saved/"interested in" listings — shown on their
--- account page. A user can only save the same listing once.
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS favorites (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    user_id INT NOT NULL,
-    listing_id INT NOT NULL,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (user_id)
+    CONSTRAINT fk_bookings_renter
+        FOREIGN KEY (renter_id)
         REFERENCES users(id)
         ON DELETE CASCADE,
 
-    FOREIGN KEY (listing_id)
+    CONSTRAINT chk_booking_dates
+        CHECK (end_date >= start_date)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_bookings_listing ON bookings(listing_id);
+CREATE INDEX idx_bookings_renter ON bookings(renter_id);
+CREATE INDEX idx_bookings_status ON bookings(status);
+
+
+
+CREATE TABLE favorites (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT UNSIGNED NOT NULL,
+    listing_id INT UNSIGNED NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_favorites_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_favorites_listing
+        FOREIGN KEY (listing_id)
         REFERENCES listings(id)
         ON DELETE CASCADE,
 
-    UNIQUE KEY unique_favorite (user_id, listing_id)
-);
+    CONSTRAINT unique_favorite
+        UNIQUE (user_id, listing_id)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_favorites_user ON favorites(user_id);
+CREATE INDEX idx_favorites_listing ON favorites(listing_id);
 
 
--- ============================================================
--- RENTAL EARNINGS
--- Money an owner has earned from their listings being booked.
--- Powers the "My Earnings" owner dashboard page.
--- ============================================================
 
-CREATE TABLE IF NOT EXISTS rental_earnings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE rental_earnings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    owner_id INT NOT NULL,
-    booking_id INT NULL,
+    owner_id INT UNSIGNED NOT NULL,
+    booking_id INT UNSIGNED NULL,
 
-    description VARCHAR(255),
-    amount DECIMAL(10,2) NOT NULL,
-    rental_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+    description VARCHAR(255) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    rental_date DATE NOT NULL,
 
-    status ENUM(
-        'pending',
-        'Completed',
-        'Paid'
-    ) NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'Completed', 'Paid')
+        NOT NULL DEFAULT 'pending',
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (owner_id)
+    CONSTRAINT fk_earnings_owner
+        FOREIGN KEY (owner_id)
         REFERENCES users(id)
         ON DELETE CASCADE,
 
-    FOREIGN KEY (booking_id)
+    CONSTRAINT fk_earnings_booking
+        FOREIGN KEY (booking_id)
         REFERENCES bookings(id)
         ON DELETE SET NULL
-);
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_earnings_owner ON rental_earnings(owner_id);
+CREATE INDEX idx_earnings_date ON rental_earnings(rental_date);
+CREATE INDEX idx_earnings_status ON rental_earnings(status);
 
 
--- ============================================================
--- INDEXES
--- Speeds up the lookups the app actually does: browsing by
--- category/status, an owner's own listings, a renter's own
--- bookings/favorites.
--- ============================================================
-
-CREATE INDEX idx_listings_owner       ON listings(owner_id);
-CREATE INDEX idx_listings_status      ON listings(status);
-CREATE INDEX idx_listings_category    ON listings(category);
-
-CREATE INDEX idx_bookings_listing     ON bookings(listing_id);
-CREATE INDEX idx_bookings_renter      ON bookings(renter_id);
-
-CREATE INDEX idx_favorites_user       ON favorites(user_id);
-
-CREATE INDEX idx_earnings_owner       ON rental_earnings(owner_id);
-
-
--- ============================================================
--- VERIFY
--- ============================================================
 
 SHOW TABLES;
 
+DESCRIBE users;
+DESCRIBE listings;
+DESCRIBE bookings;
+DESCRIBE favorites;
+DESCRIBE rental_earnings;
 
 -- ============================================================
--- A NOTE ON `listings.status`
+-- OPTIONAL DEVELOPMENT TEST DATA
 -- ============================================================
--- Two different parts of the codebase write to this column with
--- two different sets of values, and neither has been reconciled
--- yet — this schema leaves the column as free text (rather than
--- a strict ENUM) so neither one errors out on the other:
+-- DO NOT insert a fake password hash unless you know the
+-- corresponding password. Create an owner through the Signup page.
 --
---   - Listings created via POST /api/listings (backend/src/routes/
---     listingRoutes.js) default to status = 'pending', and only
---     move to 'approved' / 'rejected' / 'inactive' via an admin
---     action. Public browsing only shows 'approved' listings.
+-- After you sign up as an owner, use:
 --
---   - Listings created via POST /api/listings/manage (backend/src/
---     routes/listingsRoutes.js, the owner dashboard's "My Listings"
---     page) default to status = 'Available' instead, with no
---     approval step.
+-- SELECT id, name, email, role FROM users;
 --
--- In practice this means a listing made through one flow won't
--- show up correctly in the other (an "Available" listing was
--- never 'approved', so it won't appear in the public /browse
--- results; a freshly 'pending' listing won't show as available
--- on the owner's dashboard). Worth picking one workflow and
--- updating the other controller to match before this goes live —
--- happy to do that pass whenever you're ready for it.
+-- Then use that owner's ID for the test earnings/listing inserts
+-- below if needed.
+-- ============================================================

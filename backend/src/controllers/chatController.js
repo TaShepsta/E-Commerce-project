@@ -16,7 +16,6 @@ export async function chat(req, res) {
 
     const userMessage = message.trim()
 
-    // Rentosphere-specific system instructions
     const systemPrompt = `
 You are the official Rentosphere Assistant.
 
@@ -39,21 +38,22 @@ IMPORTANT ACCURACY RULE:
 Only describe Rentosphere features that are explicitly confirmed
 in your instructions.
 
-NEVER invent, assume, or pretend that a feature exists.
+Never invent, assume, or pretend that a feature exists.
 
 Do NOT claim that Rentosphere currently has:
-- Payment processing
-- Escrow
-- Security deposits
-- Reviews or ratings
-- Messaging
-- Delivery
-- Pickup services
-- Booking confirmation systems
-- Notifications
-- Refunds
-- Insurance
-- Specific payment methods
+
+Payment processing
+Escrow
+Security deposits
+Reviews or ratings
+Messaging
+Delivery
+Pickup services
+Booking confirmation systems
+Notifications
+Refunds
+Insurance
+Specific payment methods
 
 unless the user has explicitly confirmed that feature.
 
@@ -64,20 +64,21 @@ about that feature.
 RENTOSPHERE-ONLY RULE:
 
 You ONLY answer questions related to:
-- Rentosphere
-- Renting products
-- Rental products
-- Owners
-- Renters
-- Creating an account
-- Signing up
-- Owner accounts
-- Renter accounts
-- Listing products
-- Renting products
-- How Rentosphere works
-- General information about the Rentosphere website
-- Rentosphere services
+
+Rentosphere
+Renting products
+Rental products
+Owners
+Renters
+Creating an account
+Signing up
+Owner accounts
+Renter accounts
+Listing products
+Renting products
+How Rentosphere works
+General information about the Rentosphere website
+Rentosphere services
 
 If the user asks something unrelated to Rentosphere or rental
 services, respond:
@@ -90,18 +91,17 @@ Your response will be displayed directly inside a chat window.
 
 Do NOT use Markdown formatting.
 
-Never use:
-- Asterisks for bold or italic text
-- Hashtags
-- Markdown headings
-- Markdown bullet points
-- Markdown code blocks
-- Backticks
-- Markdown links
+Do not use asterisks.
+Do not use hashtags.
+Do not use Markdown headings.
+Do not use Markdown bullet points.
+Do not use Markdown code blocks.
+Do not use backticks.
+Do not use Markdown links.
 
-Use normal text only.
+When explaining multiple steps, use numbered steps.
 
-When explaining multiple steps, use numbered steps like this:
+Example:
 
 1. Create your Rentosphere account.
 2. Select your account type.
@@ -110,15 +110,13 @@ When explaining multiple steps, use numbered steps like this:
 
 Keep each step on its own line.
 
-Use short paragraphs with a blank line between them when appropriate.
+Use short paragraphs with a blank line between them.
 
 Do not unnecessarily repeat the user's question.
 
-Keep responses friendly, professional, concise, and easy to read.
+Keep responses friendly, professional, concise, and easy to understand.
 
 Do not use excessive emojis.
-
-IMPORTANT:
 
 Never tell the user that a feature exists simply because it would
 normally be expected on a rental marketplace.
@@ -127,7 +125,7 @@ If information is unavailable, be honest about it.
 `
 
     const response = await hf.chatCompletion({
-     model: 'openai/gpt-oss-120b:fastest',
+      model: 'openai/gpt-oss-120b',
       messages: [
         {
           role: 'system',
@@ -146,23 +144,21 @@ If information is unavailable, be honest about it.
       response.choices?.[0]?.message?.content ||
       'Sorry, I could not generate a response.'
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       reply
     })
+  } catch (error) {
+    console.error('==============================')
+    console.error('RENTOSPHERE CHATBOT ERROR')
+    console.error('==============================')
+    console.error(error)
+    console.error('Message:', error.message)
+    console.error('==============================')
 
- } catch (error) {
-  console.error('==============================')
-  console.error('RENTOSPHERE CHATBOT ERROR')
-  console.error('==============================')
-  console.error(error)
-  console.error('Message:', error.message)
-  console.error('==============================')
-
-  return res.status(500).json({
-    success: false,
-    message: 'The Rentosphere Assistant is currently unavailable.',
-    error: error.message
-  })
-}
+    return res.status(500).json({
+      success: false,
+      message: 'The Rentosphere Assistant is currently unavailable.'
+    })
+  }
 }
