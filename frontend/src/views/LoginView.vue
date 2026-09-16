@@ -21,12 +21,15 @@ const handleSubmit = async () => {
   }
   isSubmitting.value = true
   try {
-    await store.dispatch('auth/login', {
+    const currentUser = await store.dispatch('auth/login', {
       email: email.value,
       password: password.value,
       remember: remember.value,
     })
-    router.push(route.query.redirect || '/')
+
+    const role = store.state.auth.user?.role
+    const targetRoute = role === 'admin' ? '/admin/owner-applications' : (route.query.redirect || '/')
+    router.push(targetRoute)
   } catch (err) {
     error.value = err.message || 'Unable to log in. Please try again.'
   } finally {

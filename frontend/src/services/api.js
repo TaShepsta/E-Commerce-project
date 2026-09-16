@@ -71,11 +71,10 @@ async function request(path, options = {}) {
 
 
 export const productsApi = {
-  // Get all safety-verified products
-  getAll: () => request("/products"),
+  // Compatibility aliases for older callers; listings are the public catalog.
+  getAll: () => request("/listings"),
 
-  // Get one safety-verified product
-  getById: (id) => request(`/products/${id}`),
+  getById: (id) => request(`/listings/${id}`),
 };
 
 
@@ -139,4 +138,28 @@ export const ownerApplicationApi = {
 
   reject: (id) =>
     request(`/owner-applications/${id}/reject`, { method: "PATCH" }),
+};
+
+export const bookingApi = {
+  create: (payload) =>
+    request("/bookings", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getMine: () => request("/bookings/mine"),
+};
+
+export const favoritesApi = {
+  getMine: () => request("/favorites"),
+
+  add: (listingId) =>
+    request(`/favorites/${listingId}`, {
+      method: "POST",
+    }),
+
+  remove: (listingId) =>
+    request(`/favorites/${listingId}`, {
+      method: "DELETE",
+    }),
 };

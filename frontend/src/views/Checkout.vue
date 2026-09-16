@@ -209,6 +209,7 @@ import {
   clearCart,
   DELIVERY_FEE,
 } from "../stores/cart.js";
+import { bookingApi } from "../services/api.js";
 
 const store = useStore();
 const router = useRouter();
@@ -276,38 +277,34 @@ async function placeOrder() {
 
   const cardDigits = form.cardNumber.replace(/\s/g, "");
 
-  const payload = {
-    items: cart.items,
-    delivery: {
-      name: form.name,
-      phone: form.phone,
-      email: form.email,
-      address: form.address,
-      city: form.city,
-      province: form.province,
-      postalCode: form.postalCode,
-      notes: form.notes,
-      courier: "Rentosphere Courier",
-      deliveryFee: DELIVERY_FEE,
-    },
-    payment: {
-      cardName: form.cardName,
-      cardLast4: cardDigits.slice(-4),
-      cardExpiry: form.cardExpiry,
-    },
-    subtotal: cartTotal.value,
-    total: cartGrandTotal.value,
-  };
-
   try {
-    await fetch("http://localhost/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch {
-    // Booking still confirms locally even if the backend call fails,
-    // so the demo flow isn't blocked by a missing API.
+    const startDate = new Date();
+
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    await Promise.all(
+      cart.items.map((item) =>
+        (() => {
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + (Number(item.days) || 1) - 1);
+
+          return bookingApi.create({
+            listingId: item.id,
+            startDate: formatDate(startDate),
+            endDate: formatDate(endDate),
+          });
+        })(),
+      ),
+    );
+  } catch (error) {
+    submitting.value = false;
+    await Swal.fire("Booking failed", error.message, "error");
+    return;
   }
 
   await Swal.fire(

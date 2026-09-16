@@ -172,6 +172,16 @@
             >
               {{ p.status }}
             </span>
+            <button
+              v-if="p.id"
+              class="favorite-button"
+              type="button"
+              :aria-label="isFavorite(p.id) ? 'Remove from saved listings' : 'Save listing'"
+              :aria-pressed="isFavorite(p.id)"
+              @click.stop="toggleFavorite(p)"
+            >
+              {{ isFavorite(p.id) ? "♥" : "♡" }}
+            </button>
           </div>
 
           <div class="card-body">
@@ -215,8 +225,9 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import ProductDetail from "../components/ProductDetail.vue";
+import { useStore } from "vuex";
 import { eventCategories, products as localProducts } from "../data/products";
-import { listingsApi } from "../services/api";
+import { favoritesApi, listingsApi } from "../services/api";
 import { showToast } from "../utils/notifications";
 
 const selectedProduct = ref(null);
@@ -227,6 +238,8 @@ const filters = ref({ categories: [], priceRange: 2000, location: "" });
 const searchQuery = ref("");
 const sortBy = ref("default");
 const mobileFiltersOpen = ref(false);
+const favoriteIds = ref(new Set());
+const store = useStore();
 
 const activeFilterCount = computed(() => {
   return (
@@ -284,6 +297,15 @@ const normalizeLocalProduct = (item) => ({
 });
 
 onMounted(async () => {
+  if (store.getters["auth/isAuthenticated"]) {
+    try {
+      const data = await favoritesApi.getMine();
+      favoriteIds.value = new Set(data.listingIds || []);
+    } catch {
+      favoriteIds.value = new Set();
+    }
+  }
+
   try {
     const data = await listingsApi.getPublic();
     const apiListings = Array.isArray(data) ? data.map(normalizeListing) : [];
@@ -298,6 +320,30 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+function isFavorite(id) {
+  return favoriteIds.value.has(id);
+}
+
+async function toggleFavorite(listing) {
+  if (!store.getters["auth/isAuthenticated"]) {
+    showToast("Log in to save listings.", "info");
+    return;
+  }
+
+  const wasFavorite = isFavorite(listing.id);
+  const nextFavorites = new Set(favoriteIds.value);
+
+  if (wasFavorite) {
+    await favoritesApi.remove(listing.id);
+    nextFavorites.delete(listing.id);
+  } else {
+    await favoritesApi.add(listing.id);
+    nextFavorites.add(listing.id);
+  }
+
+  favoriteIds.value = nextFavorites;
+}
 
 const filteredProducts = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
@@ -743,6 +789,25 @@ const filteredProducts = computed(() => {
 .badge.pending {
   background: var(--gold);
   color: var(--pine-deep);
+}
+
+.favorite-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--pine);
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.favorite-button[aria-pressed="true"] {
+  color: #b3261e;
 }
 
 .card-body {

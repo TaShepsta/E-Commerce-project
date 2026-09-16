@@ -18,6 +18,20 @@ const Booking = {
         return rows[0] || null;
     },
 
+    async findOverlappingByListing(listingId, startDate, endDate) {
+        const [rows] = await pool.query(
+            `SELECT id
+             FROM bookings
+             WHERE listing_id = ?
+               AND status NOT IN ('cancelled', 'completed')
+               AND start_date <= ?
+               AND end_date >= ?
+             LIMIT 1`,
+            [listingId, endDate, startDate]
+        );
+        return rows[0] || null;
+    },
+
     // A renter's own bookings (used to restore "my bookings" on login).
     async findByRenterId(renterId) {
         const [rows] = await pool.query(

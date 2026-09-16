@@ -25,6 +25,13 @@ const User = {
         return rows[0] || null;
     },
 
+    async updateRoleById(id, role) {
+        await pool.query(
+            'UPDATE users SET role = ? WHERE id = ?',
+            [role, id]
+        );
+    },
+
     // Stores a hash of the reset token (never the raw token) plus its
     // expiry, keyed by email. Called when a forgot-password request comes in.
     async setResetToken(email, tokenHash, expiresAt) {

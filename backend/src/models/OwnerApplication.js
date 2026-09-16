@@ -45,6 +45,17 @@ const OwnerApplication = {
         return this.findByUserId(userId);
     },
 
+    async findById(id) {
+        const [rows] = await pool.query(
+            `SELECT id, user_id, full_name, email, phone, status,
+                    created_at, updated_at, reviewed_at
+             FROM owner_applications
+             WHERE id = ?`,
+            [id]
+        );
+        return rows[0] || null;
+    },
+
     async findByUserId(userId) {
         const [rows] = await pool.query(
             `SELECT id, user_id, full_name, email, phone, status,

@@ -1,4 +1,5 @@
 import OwnerApplication from '../models/OwnerApplication.js';
+import User from '../models/User.js';
 
 const REQUIRED_FIELDS = [
     'fullName', 'email', 'phone',
@@ -64,10 +65,18 @@ export const listApplications = async (req, res) => {
 
 export const approveApplication = async (req, res) => {
     try {
+        const application = await OwnerApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found.' });
+        }
+
         const updated = await OwnerApplication.updateStatus(req.params.id, 'approved', req.user.id);
         if (!updated) {
             return res.status(404).json({ message: 'Application not found.' });
         }
+
+        await User.updateRoleById(application.user_id, 'owner');
+
         res.status(200).json({ message: 'Application approved.' });
     } catch (err) {
         console.error('Approve owner application error:', err);

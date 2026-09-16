@@ -39,8 +39,12 @@
 
       <p v-if="loading">Loading your earnings...</p>
       <p v-else-if="loadError">{{ loadError }}</p>
+      <div v-else-if="history.length === 0 && monthlyEarnings.length === 0" class="empty-state">
+        <p>No earnings yet.</p>
+        <span>{{ currentUser?.name || "Your account" }} does not have any completed rental earnings yet.</span>
+      </div>
 
-      <section class="trend-panel" aria-labelledby="earnings-trend-title">
+      <section v-else class="trend-panel" aria-labelledby="earnings-trend-title">
         <div class="trend-copy">
           <p class="eyebrow">EARNINGS TREND</p>
           <h2 id="earnings-trend-title">
@@ -104,8 +108,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { useStore } from "vuex";
 import { earningsApi } from "../services/api";
+
+const store = useStore();
+const currentUser = computed(() => store.state.auth.user);
 
 const summary = ref({
   total: 0,
@@ -145,7 +153,15 @@ async function loadEarnings() {
   }
 }
 
-onMounted(loadEarnings);
+watch(
+  currentUser,
+  (user) => {
+    if (user?.role === "owner") {
+      loadEarnings();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
@@ -214,6 +230,21 @@ h2 span {
   max-width: 1180px;
   margin-right: auto;
   margin-left: auto;
+}
+.empty-state {
+  max-width: 1180px;
+  margin: 0 auto 32px;
+  padding: 28px 20px;
+  border: 1px dashed #d9d5cc;
+  border-radius: 10px;
+  background: #faf7f1;
+  color: #68717a;
+}
+.empty-state p {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--green);
 }
 .section-heading {
   margin-bottom: 36px;

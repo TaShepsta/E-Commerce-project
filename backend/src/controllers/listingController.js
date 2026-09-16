@@ -4,9 +4,11 @@ import {
   getListingImage,
   getOwnerListingById,
   getOwnerListings,
+  getPublicListingById,
   getPublicListings,
   updateOwnerListing,
 } from "../models/listingsModel.js";
+import OwnerApplication from "../models/OwnerApplication.js";
 
 function getOwnerId(req) {
   return Number(req.user.id);
@@ -29,6 +31,20 @@ export async function getApprovedListings(req, res, next) {
   }
 }
 
+export async function getApprovedListingById(req, res, next) {
+  try {
+    const listing = await getPublicListingById(req.params.id);
+
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found." });
+    }
+
+    res.json(listing);
+  } catch (error) {
+    next(error);
+  }
+}
+
 // =========================================================
 // OWNER LISTINGS
 // =========================================================
@@ -45,6 +61,16 @@ export async function getMyListings(req, res, next) {
 
 export async function createListing(req, res, next) {
   try {
+    if (req.user.role === "owner") {
+      const ownerStatus = await OwnerApplication.findStatusByUserId(req.user.id);
+
+      if (ownerStatus !== "approved") {
+        return res.status(403).json({
+          message: "Your owner application must be approved before you can create listings.",
+        });
+      }
+    }
+
     const listing = await createOwnerListing(
       {
         ...req.body,

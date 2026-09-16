@@ -9,6 +9,21 @@ export const createBooking = async (req, res) => {
             return res.status(400).json({ message: 'Listing, start date, and end date are required.' });
         }
 
+        const start = new Date(`${startDate}T00:00:00`);
+        const end = new Date(`${endDate}T00:00:00`);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+            return res.status(400).json({ message: 'End date must be on or after the start date.' });
+        }
+
+        const conflictingBooking = await Booking.findOverlappingByListing(
+            listingId,
+            startDate,
+            endDate
+        );
+        if (conflictingBooking) {
+            return res.status(409).json({ message: 'This listing is already booked for those dates.' });
+        }
+
         const listing = await Listing.findById(listingId);
         if (!listing || !["approved", "Available"].includes(listing.status)) {
             return res.status(404).json({ message: 'Listing not found or not available for booking.' });
@@ -66,6 +81,16 @@ export const updateBookingStatus = async (req, res) => {
         const booking = await Booking.findById(req.params.id);
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found.' });
+        }
+
+        if (req.user.role !== 'admin') {
+            const listing = await Listing.findById(booking.listing_id);
+            const isOwner = req.user.role === 'owner' && listing?.owner_id === req.user.id;
+            const isRenter = req.user.role === 'renter' && booking.renter_id === req.user.id;
+
+            if (!isOwner && !isRenter) {
+                return res.status(403).json({ message: 'You do not have permission to update this booking.' });
+            }
         }
 
         const updated = await Booking.updateStatus(req.params.id, status);

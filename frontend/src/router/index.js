@@ -19,6 +19,7 @@ import LoginView from "../views/LoginView.vue";
 import SignupView from "../views/SignupView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ResetPasswordView from "../views/ResetPasswordView.vue";
+import MyBookingsView from "../views/MyBookingsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,12 +41,14 @@ const router = createRouter({
       path: "/my-listings",
       name: "my-listings",
       component: MyListingsView,
+      meta: { requiresOwner: true },
     },
 
     {
       path: "/my-earnings",
       name: "my-earnings",
       component: MyEarningsView,
+      meta: { requiresOwner: true },
     },
 
     {
@@ -77,6 +80,13 @@ const router = createRouter({
       path: "/cart",
       name: "cart",
       component: Cart,
+      meta: { requiresAuth: true },
+    },
+
+    {
+      path: "/my-bookings",
+      name: "my-bookings",
+      component: MyBookingsView,
       meta: { requiresAuth: true },
     },
 
@@ -132,6 +142,16 @@ router.beforeEach((to) => {
 
   if (to.meta?.requiresAuth && !store.getters["auth/isAuthenticated"]) {
     return { path: "/login", query: { redirect: to.fullPath } };
+  }
+
+  if (to.meta?.requiresOwner) {
+    const user = store.state.auth.user;
+    const canAccess = user?.role === "admin" ||
+      (user?.role === "owner" && user?.ownerStatus === "approved");
+
+    if (!canAccess) {
+      return { path: user ? "/become-owner" : "/login", query: user ? {} : { redirect: to.fullPath } };
+    }
   }
 });
 

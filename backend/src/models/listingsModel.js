@@ -62,6 +62,18 @@ export async function getPublicListings({ category, location } = {}) {
   return rows.map(normalizeListing);
 }
 
+export async function getPublicListingById(id) {
+  const [rows] = await pool.query(
+    `SELECT ${listingFields}
+     FROM listings
+     WHERE id = ? AND status IN ('Available', 'approved')
+     LIMIT 1`,
+    [id],
+  );
+
+  return rows[0] ? normalizeListing(rows[0]) : null;
+}
+
 export async function getOwnerListings(ownerId) {
   const [rows] = await pool.query(
     `SELECT ${listingFields}
@@ -127,43 +139,79 @@ export async function createOwnerListing(listing, ownerId) {
 }
 
 export async function updateOwnerListing(id, listing, ownerId) {
-  const queryParts = [
-    "title = ?",
-    "description = ?",
-    "category = ?",
-    "daily_price = ?",
-    "price_unit = ?",
-    "location = ?",
-    "status = ?",
-    "image_alt = ?",
-  ];
+  const queryParts = [];
+  const params = [];
 
-  const params = [
-    listing.name.trim(),
-    listing.description?.trim() || null,
-    listing.category.trim(),
-    Number(listing.price),
-    listing.priceUnit || "day",
-    listing.location?.trim() || null,
-    listing.status || "Available",
-    listing.imageAlt?.trim() || listing.name.trim(),
-  ];
+  if (listing.name !== undefined) {
+    queryParts.push("title = ?");
+    params.push(listing.name.trim());
+  }
+
+  if (listing.description !== undefined) {
+    queryParts.push("description = ?");
+    params.push(listing.description?.trim() || null);
+  }
+
+  if (listing.category !== undefined) {
+    queryParts.push("category = ?");
+    params.push(listing.category.trim());
+  }
+
+  if (listing.price !== undefined) {
+    queryParts.push("daily_price = ?");
+    params.push(Number(listing.price));
+  }
+
+  if (listing.priceUnit !== undefined) {
+    queryParts.push("price_unit = ?");
+    params.push(listing.priceUnit);
+  }
+
+  if (listing.location !== undefined) {
+    queryParts.push("location = ?");
+    params.push(listing.location?.trim() || null);
+  }
+
+  if (listing.status !== undefined) {
+    queryParts.push("status = ?");
+    params.push(listing.status);
+  }
+
+  if (listing.imageAlt !== undefined || listing.name !== undefined) {
+    queryParts.push("image_alt = ?");
+    params.push(listing.imageAlt?.trim() || listing.name?.trim() || null);
+  }
 
   if (listing.file?.buffer) {
     queryParts.push("image_data = ?", "image_mime_type = ?", "image_url = NULL");
     params.push(listing.file.buffer, listing.file.mimetype);
   }
 
+  if (queryParts.length === 0) {
+    return getOwnerListingById(id, ownerId);
+  }
+
+  const ownershipClause = ownerId === null ? "id = ?" : "id = ? AND owner_id = ?";
+  const ownershipParams = ownerId === null ? [id] : [id, ownerId];
+
   const [result] = await pool.execute(
     `UPDATE listings
      SET ${queryParts.join(", ")}
-     WHERE id = ? AND owner_id = ?`,
-    [...params, id, ownerId],
+     WHERE ${ownershipClause}`,
+    [...params, ...ownershipParams],
   );
 
-  return result.affectedRows
-    ? getOwnerListingById(id, ownerId)
-    : null;
+  if (!result.affectedRows) return null;
+
+  if (ownerId === null) {
+    const [rows] = await pool.query(
+      `SELECT ${listingFields} FROM listings WHERE id = ?`,
+      [id],
+    );
+    return rows[0] ? normalizeListing(rows[0]) : null;
+  }
+
+  return getOwnerListingById(id, ownerId);
 }
 
 export async function deleteOwnerListing(id, ownerId) {

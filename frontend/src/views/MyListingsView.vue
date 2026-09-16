@@ -141,6 +141,10 @@
       >
         <p v-if="loading">Loading your listings...</p>
         <p v-else-if="loadError">{{ loadError }}</p>
+        <div v-else-if="ownerListings.length === 0" class="empty-state">
+          <p>No listings yet.</p>
+          <span>{{ currentUser?.name || "You" }} has not created any rental listings yet.</span>
+        </div>
         <ListingCard
           v-else
           v-for="listing in ownerListings"
@@ -238,12 +242,15 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { useStore } from "vuex";
 import ListingCard from "../components/ListingCard.vue";
 import { eventCategories } from "../data/products";
 import { listingsApi } from "../services/api";
 import { showToast } from "../utils/notifications";
 
+const store = useStore();
+const currentUser = computed(() => store.state.auth.user);
 const ownerListings = ref([]);
 const loading = ref(true);
 const loadError = ref("");
@@ -459,7 +466,15 @@ async function deleteListing(listing) {
   }
 }
 
-onMounted(loadListings);
+watch(
+  currentUser,
+  (user) => {
+    if (user?.role === "owner") {
+      loadListings();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
@@ -548,6 +563,19 @@ h2 {
   max-width: 1180px;
   margin: 0 auto;
   border-top: 1px solid #e4e0d7;
+}
+.empty-state {
+  padding: 28px 20px;
+  border: 1px dashed #d9d5cc;
+  border-radius: 10px;
+  background: #faf7f1;
+  color: #68717a;
+}
+.empty-state p {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--green);
 }
 .listing-row {
   display: grid;

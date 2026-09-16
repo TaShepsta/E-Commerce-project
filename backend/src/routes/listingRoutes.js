@@ -3,8 +3,11 @@ import multer from "multer";
 
 import {
   createListing,
+  deleteListing,
   getApprovedListings,
+  getApprovedListingById,
   getMyListings,
+  updateListing,
   updateListingStatus,
 } from "../controllers/listingController.js";
 
@@ -13,9 +16,7 @@ import roleCheck from "../middleware/roleCheck.js";
 
 const router = express.Router();
 
-const upload = multer({
-  dest: "uploads/",
-});
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Public browse
 router.get("/", getApprovedListings);
@@ -35,6 +36,24 @@ router.get(
   authenticate,
   roleCheck("owner", "admin"),
   getMyListings
+);
+
+router.get("/:id", getApprovedListingById);
+
+// Owner updates or deletes their own listing
+router.put(
+  "/:id",
+  authenticate,
+  roleCheck("owner", "admin"),
+  upload.single("image"),
+  updateListing
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  roleCheck("owner", "admin"),
+  deleteListing
 );
 
 // Admin approves/rejects listing

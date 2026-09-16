@@ -15,13 +15,14 @@ const profileMenuOpen = ref(false);
 
 const isAuthenticated = computed(() => store.getters["auth/isAuthenticated"]);
 const currentUser = computed(() => store.state.auth.user);
+const isAdmin = computed(() => currentUser.value?.role === "admin");
 
-// Real approval status, sourced from the backend (owner_applications
-// table) via the user object \u2014 not a local flag, so it reflects what
-// an admin has actually approved.
+// The owner dashboard should unlock only after an admin approves the
+// submitted owner application.
+const isOwnerAccount = computed(() => currentUser.value?.role === "owner");
 const isApprovedOwner = computed(
   () =>
-    currentUser.value?.role === "owner" &&
+    isOwnerAccount.value &&
     currentUser.value?.ownerStatus === "approved",
 );
 
@@ -125,7 +126,13 @@ onUnmounted(() => {
 
         <RouterLink to="/browse" @click="closeMenu">Browse</RouterLink>
 
-        <template v-if="isApprovedOwner">
+        <template v-if="isAdmin">
+          <RouterLink to="/admin/owner-applications" @click="closeMenu">
+            Owner Applications
+          </RouterLink>
+        </template>
+
+        <template v-else-if="isApprovedOwner">
           <RouterLink to="/my-listings" @click="closeMenu">
             My Listings
           </RouterLink>
@@ -180,12 +187,28 @@ onUnmounted(() => {
               <p class="profile-dropdown-email">{{ currentUser?.email }}</p>
               <hr />
               <RouterLink
+                v-if="isAdmin"
+                to="/admin/owner-applications"
+                class="profile-dropdown-link"
+                @click="closeProfileMenu"
+              >
+                Owner Applications
+              </RouterLink>
+              <RouterLink
                 v-if="isApprovedOwner"
                 to="/my-listings"
                 class="profile-dropdown-link"
                 @click="closeProfileMenu"
               >
                 My Listings
+              </RouterLink>
+              <RouterLink
+                v-if="isApprovedOwner"
+                to="/my-earnings"
+                class="profile-dropdown-link"
+                @click="closeProfileMenu"
+              >
+                My Earnings
               </RouterLink>
               <button class="profile-dropdown-logout" @click="handleLogout">
                 Log out

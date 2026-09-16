@@ -12,6 +12,7 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 import earningsRoutes from "./routes/earningsRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import ownerApplicationRoutes from "./routes/ownerApplicationRoutes.js";
+import favoriteRoutes from "./routes/favoriteRoutes.js";
 
 import errorHandler, { notFound } from "./middleware/errorHandler.js";
 import pool from "./config/db.js";
@@ -62,7 +63,7 @@ app.get("/api/health", async (_req, res) => {
     );
 
     const [[products]] = await pool.query(
-      "SELECT COUNT(*) AS count FROM products",
+      "SELECT COUNT(*) AS count FROM listings WHERE status IN ('Available', 'approved')",
     );
 
     res.json({
@@ -98,13 +99,16 @@ app.get("/api/products", async (req, res, next) => {
         id,
         title,
         category,
-        price_per_day,
+        daily_price AS price_per_day,
         location,
         description,
-        image_url,
+        CASE
+          WHEN image_url IS NOT NULL AND image_url <> '' THEN image_url
+          ELSE CONCAT('/api/listings/', id, '/image')
+        END AS image_url,
         status
-      FROM products
-      WHERE status = 'Safety Verified'
+      FROM listings
+      WHERE status IN ('Available', 'approved')
     `;
 
     const values = [];
@@ -139,14 +143,14 @@ app.get("/api/products/:id", async (req, res, next) => {
           id,
           title,
           category,
-          price_per_day,
+          daily_price AS price_per_day,
           location,
           description,
           image_url,
           status
-        FROM products
+        FROM listings
         WHERE id = ?
-          AND status = 'Safety Verified'
+          AND status IN ('Available', 'approved')
         LIMIT 1
       `,
       [req.params.id],
@@ -211,6 +215,8 @@ app.use("/api/earnings", earningsRoutes);
 app.use("/api/chat", chatRoutes);
 
 app.use("/api/owner-applications", ownerApplicationRoutes);
+
+app.use("/api/favorites", favoriteRoutes);
 
 
 
