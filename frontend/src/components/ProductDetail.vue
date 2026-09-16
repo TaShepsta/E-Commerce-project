@@ -26,7 +26,7 @@
         </div>
 
         <div class="price-block">
-          <strong>R{{ product.price_per_day }}</strong>
+          <strong>R{{ Number(product.price_per_day ?? product.price ?? 0).toFixed(0) }}</strong>
           <span>/day</span>
         </div>
 
@@ -112,8 +112,9 @@ const days = ref(1);
 const qty = ref(1);
 
 const subtotal = computed(() => {
+  const productPrice = Number(props.product.price_per_day ?? props.product.price ?? 0);
   return (
-    Number(props.product.price_per_day || 0) *
+    productPrice *
     Number(days.value || 1) *
     Number(qty.value || 1)
   );

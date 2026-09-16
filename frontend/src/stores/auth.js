@@ -1,3 +1,5 @@
+import { syncCartToUser } from "./cart.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 const TOKEN_KEY = "rentosphere_token";
 const USER_KEY = "rentosphere_user";
@@ -80,11 +82,13 @@ export default {
       state.token = token;
       state.user = user;
       persist(token, user, remember);
+      syncCartToUser();
     },
     CLEAR_AUTH(state) {
       state.token = null;
       state.user = null;
       clearPersisted();
+      syncCartToUser();
     },
   },
 

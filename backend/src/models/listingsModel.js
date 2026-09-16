@@ -10,6 +10,7 @@ const listingFields = `
   description,
   category,
   daily_price AS price,
+  daily_price AS price_per_day,
   weekly_price AS weeklyPrice,
   monthly_price AS monthlyPrice,
   price_unit AS priceUnit,
@@ -29,6 +30,7 @@ function normalizeListing(listing) {
   return {
     ...listing,
     price: Number(listing.price),
+    price_per_day: Number(listing.price_per_day ?? listing.price),
     weeklyPrice:
       listing.weeklyPrice === null ? null : Number(listing.weeklyPrice),
     monthlyPrice:

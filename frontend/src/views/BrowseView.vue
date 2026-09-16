@@ -273,7 +273,9 @@ const normalizeListing = (listing) => {
     image_url: listing.image_url || listing.image || "",
     image: listing.image_url || listing.image || "",
     location: listing.location || "",
-    price_per_day: Number(listing.daily_price ?? listing.price_per_day ?? 0),
+    price_per_day: Number(
+      listing.daily_price ?? listing.price_per_day ?? listing.price ?? 0,
+    ),
     // GET /api/listings only ever returns approved listings, but the
     // owner-dashboard creation flow still writes 'Available' in some
     // paths, so treat both as verified until that's fully reconciled.

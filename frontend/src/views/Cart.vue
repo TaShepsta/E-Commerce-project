@@ -32,7 +32,7 @@
               {{ item.location || "Location available on request" }}
               <span v-if="item.category"> · {{ item.category }}</span>
             </p>
-            <p class="item-price">R{{ item.price_per_day }}<small>/day</small></p>
+            <p class="item-price">R{{ Number(item.price_per_day ?? item.price ?? 0).toFixed(0) }}<small>/day</small></p>
           </div>
 
           <div class="item-controls">
@@ -57,7 +57,7 @@
           </div>
 
           <div class="item-subtotal">
-            <strong>R{{ (item.price_per_day * item.days * item.qty).toFixed(0) }}</strong>
+            <strong>R{{ (Number(item.price_per_day ?? item.price ?? 0) * item.days * item.qty).toFixed(0) }}</strong>
             <button class="remove-btn" type="button" @click="removeFromCart(item.id)">
               Remove
             </button>
