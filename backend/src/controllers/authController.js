@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../models/User.js';
+import OwnerApplication from '../models/OwnerApplication.js';
 import { sendPasswordResetEmail } from '../utils/mailer.js';
 
 const SALT_ROUNDS = 10;
@@ -17,6 +18,14 @@ function generateToken(user) {
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
+}
+
+async function withOwnerStatus(user) {
+    if (user.role !== 'owner') {
+        return { ...user, ownerStatus: null };
+    }
+    const ownerStatus = await OwnerApplication.findStatusByUserId(user.id);
+    return { ...user, ownerStatus: ownerStatus || 'not_submitted' };
 }
 
 export const register = async (req, res) => {
@@ -49,10 +58,12 @@ export const register = async (req, res) => {
 
         const token = generateToken(newUser);
 
+        const userWithStatus = await withOwnerStatus(newUser);
+
         res.status(201).json({
             message: 'Account created successfully.',
             token,
-            user: newUser
+            user: userWithStatus
         });
     } catch (err) {
         console.error('Register error:', err);
@@ -80,15 +91,17 @@ export const login = async (req, res) => {
 
         const token = generateToken(user);
 
+        const userWithStatus = await withOwnerStatus({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        });
+
         res.status(200).json({
             message: 'Logged in successfully.',
             token,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
+            user: userWithStatus
         });
     } catch (err) {
         console.error('Login error:', err);
@@ -102,7 +115,8 @@ export const getProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
-        res.status(200).json({ user });
+        const userWithStatus = await withOwnerStatus(user);
+        res.status(200).json({ user: userWithStatus });
     } catch (err) {
         console.error('Get profile error:', err);
         res.status(500).json({ message: 'Something went wrong while fetching the profile.' });

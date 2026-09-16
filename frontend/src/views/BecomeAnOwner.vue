@@ -249,40 +249,60 @@
       </div>
 
       <div class="owner-wrapper">
-        <!-- APPROVAL MESSAGE -->
-        <div v-if="!isApprovedOwner" class="safety-alert">
+        <!-- NOT LOGGED IN AS AN OWNER YET -->
+        <div v-if="!canApply" class="safety-alert">
           <div class="safety-icon" aria-hidden="true">
-            &#128736;
+            &#128274;
           </div>
 
           <div>
-            <strong>Approval Required</strong>
+            <strong>{{ gateTitle }}</strong>
 
-            <p>
-              Your owner request is pending approval. Complete your details
-              below and submit your application for review.
-            </p>
+            <p>{{ gateMessage }}</p>
+
+            <RouterLink
+              v-if="!isAuthenticated"
+              to="/signup/owner"
+              class="btn-primary"
+              style="display:inline-block;margin-top:12px;text-decoration:none;"
+            >
+              Sign up as an Owner
+            </RouterLink>
           </div>
         </div>
 
-        <!-- SAFETY MESSAGE -->
-        <div class="safety-alert">
-          <div class="safety-icon" aria-hidden="true">
-            &#128737;
+        <template v-else>
+          <!-- REAL APPLICATION STATUS -->
+          <div v-if="applicationStatus" class="safety-alert">
+            <div class="safety-icon" aria-hidden="true">
+              {{ statusIcon }}
+            </div>
+
+            <div>
+              <strong>{{ statusTitle }}</strong>
+              <p>{{ statusMessage }}</p>
+            </div>
           </div>
 
-          <div>
-            <strong>Safety Evaluation Required</strong>
+          <!-- SAFETY MESSAGE -->
+          <div v-if="applicationStatus !== 'approved'" class="safety-alert">
+            <div class="safety-icon" aria-hidden="true">
+              &#128737;
+            </div>
 
-            <p>
-              Your owner application must be reviewed before you can start
-              posting rental items on Rentosphere.
-            </p>
+            <div>
+              <strong>Safety Evaluation Required</strong>
+
+              <p>
+                Your owner application must be reviewed before you can start
+                posting rental items on Rentosphere.
+              </p>
+            </div>
           </div>
-        </div>
 
         <!-- OWNER FORM -->
         <form
+          v-if="applicationStatus !== 'approved'"
           @submit.prevent="submitOwnerApplication"
           class="owner-form"
         >
@@ -641,26 +661,67 @@
           role="status"
         >
           {{ result }}
-
-          <br />
-
-          <strong>Status:</strong>
-          Pending Inspection - Our team will verify your application within
-          24 hours.
         </div>
+        </template>
       </div>
     </section>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
+import { useStore } from "vuex";
 import { showToast } from "../utils/notifications";
+import { ownerApplicationApi } from "../services/api";
 
-const ownerApprovedKey = "rentosphere-owner-approved";
+const store = useStore();
+const isAuthenticated = computed(() => store.getters["auth/isAuthenticated"]);
+const currentUser = computed(() => store.state.auth.user);
+const isOwnerAccount = computed(() => currentUser.value?.role === "owner");
 
-const ownerApproved = ref(false);
-const isApprovedOwner = ref(false);
+const canApply = computed(() => isAuthenticated.value && isOwnerAccount.value);
+
+const gateTitle = computed(() =>
+  !isAuthenticated.value ? "Log in required" : "Owner account required",
+);
+const gateMessage = computed(() =>
+  !isAuthenticated.value
+    ? "Log in or sign up as an owner to submit an application."
+    : "This application is for owner accounts. Sign up as an owner to continue.",
+);
+
+const applicationStatus = ref(null);
+
+const statusIcon = computed(() => {
+  switch (applicationStatus.value) {
+    case "approved": return "\u2705";
+    case "rejected": return "\u26A0\uFE0F";
+    case "pending": return "\uD83D\uDD27";
+    default: return "\uD83D\uDD27";
+  }
+});
+
+const statusTitle = computed(() => {
+  switch (applicationStatus.value) {
+    case "approved": return "You're an approved owner";
+    case "rejected": return "Application not approved";
+    case "pending": return "Application pending review";
+    default: return "Approval required";
+  }
+});
+
+const statusMessage = computed(() => {
+  switch (applicationStatus.value) {
+    case "approved":
+      return "Your owner account is fully approved \u2014 you can now list rentals from My Listings.";
+    case "rejected":
+      return "Your last application wasn't approved. You can update your details and resubmit below.";
+    case "pending":
+      return "We've received your application and it's awaiting review. You can update and resubmit your details below if anything changes.";
+    default:
+      return "Complete your details below and submit your application for review.";
+  }
+});
 
 const loading = ref(false);
 const result = ref("");
@@ -681,18 +742,6 @@ const form = reactive({
   accountType: "",
   branchCode: "",
 });
-
-const syncOwnerState = () => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const approved =
-    window.localStorage.getItem(ownerApprovedKey) === "true";
-
-  ownerApproved.value = approved;
-  isApprovedOwner.value = approved;
-};
 
 const resetForm = () => {
   form.fullName = "";
@@ -716,34 +765,16 @@ const submitOwnerApplication = async () => {
   result.value = "";
 
   try {
-    /*
-      This form is now an OWNER APPLICATION.
+    const data = await ownerApplicationApi.submit({ ...form });
 
-      It should not call listingsApi.create() because that endpoint
-      is intended for creating rental listings.
+    applicationStatus.value = data.application?.status || "pending";
+    result.value = data.message;
 
-      The backend owner-application endpoint can be connected here
-      once your team has created that endpoint.
-    */
-
-    await new Promise((resolve) => {
-      setTimeout(resolve, 700);
-    });
-
-    result.value =
-      "Your owner application has been submitted successfully.";
-
-    showToast(
-      "Owner application submitted successfully.",
-      "success",
-    );
-
-    /*
-      Do not store banking information in localStorage.
-      The form is cleared after submission instead.
-    */
+    showToast(data.message, "success");
 
     resetForm();
+
+    await store.dispatch("auth/refreshProfile");
   } catch (error) {
     showToast(
       error?.message || "Something went wrong. Please try again.",
@@ -754,8 +785,21 @@ const submitOwnerApplication = async () => {
   }
 };
 
-onMounted(() => {
-  syncOwnerState();
+onMounted(async () => {
+  if (!canApply.value) return;
+
+  try {
+    const data = await ownerApplicationApi.getMine();
+    applicationStatus.value = data.application?.status || "not_submitted";
+
+    if (data.application) {
+      form.fullName = data.application.full_name || "";
+      form.email = data.application.email || "";
+      form.phone = data.application.phone || "";
+    }
+  } catch {
+    applicationStatus.value = "not_submitted";
+  }
 });
 </script>
 

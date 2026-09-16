@@ -11,6 +11,7 @@ import listingRoutes from "./routes/listingRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import earningsRoutes from "./routes/earningsRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
+import ownerApplicationRoutes from "./routes/ownerApplicationRoutes.js";
 
 import errorHandler, { notFound } from "./middleware/errorHandler.js";
 import pool from "./config/db.js";
@@ -209,6 +210,8 @@ app.use("/api/earnings", earningsRoutes);
 
 app.use("/api/chat", chatRoutes);
 
+app.use("/api/owner-applications", ownerApplicationRoutes);
+
 
 
 app.get("/", (_req, res) => {
@@ -223,4 +226,3 @@ app.use(notFound);
 app.use(errorHandler);
 
 export default app;
-

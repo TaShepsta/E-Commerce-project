@@ -132,5 +132,20 @@ export default {
     logout({ commit }) {
       commit("CLEAR_AUTH");
     },
+
+    async refreshProfile({ commit, state }) {
+      if (!state.token) return;
+
+      try {
+        const data = await request("/auth/me");
+        commit("SET_AUTH", {
+          token: state.token,
+          user: data.user,
+          remember: Boolean(window.localStorage.getItem(TOKEN_KEY)),
+        });
+      } catch {
+        commit("CLEAR_AUTH");
+      }
+    },
   },
 };

@@ -83,6 +83,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 import Swal from "sweetalert2";
 import { addToCart } from "../stores/cart.js";
 
@@ -95,6 +96,17 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 const router = useRouter();
+const store = useStore();
+
+// Cart/checkout is only for logged-in users, so send guests to log in
+// (or create an account) instead of silently building a guest cart.
+function requireLogin() {
+  if (store.getters["auth/isAuthenticated"]) return true;
+
+  emit("close");
+  router.push({ path: "/login", query: { redirect: "/browse" } });
+  return false;
+}
 
 const days = ref(1);
 const qty = ref(1);
@@ -108,6 +120,8 @@ const subtotal = computed(() => {
 });
 
 function handleAdd() {
+  if (!requireLogin()) return;
+
   addToCart(props.product, days.value, qty.value);
 
   Swal.fire(
@@ -120,6 +134,8 @@ function handleAdd() {
 }
 
 function handleRentNow() {
+  if (!requireLogin()) return;
+
   addToCart(props.product, days.value, qty.value);
   emit("close");
   router.push("/cart");

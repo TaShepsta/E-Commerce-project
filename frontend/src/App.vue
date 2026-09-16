@@ -5,23 +5,25 @@ import { useStore } from "vuex";
 import logo from "./assets/rentosphere.png";
 import Footer from "./components/Footer.vue";
 import Chatbot from "./components/Chatbot.vue";
+import { cartCount } from "./stores/cart.js";
 
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
 const menuOpen = ref(false);
 const profileMenuOpen = ref(false);
-const ownerApprovedKey = "rentosphere-owner-approved";
-const isApprovedOwner = ref(false);
 
 const isAuthenticated = computed(() => store.getters["auth/isAuthenticated"]);
 const currentUser = computed(() => store.state.auth.user);
 
-function syncOwnerState() {
-  isApprovedOwner.value =
-    typeof window !== "undefined" &&
-    window.localStorage.getItem(ownerApprovedKey) === "false";
-}
+// Real approval status, sourced from the backend (owner_applications
+// table) via the user object \u2014 not a local flag, so it reflects what
+// an admin has actually approved.
+const isApprovedOwner = computed(
+  () =>
+    currentUser.value?.role === "owner" &&
+    currentUser.value?.ownerStatus === "approved",
+);
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
@@ -79,16 +81,18 @@ function handleOutsideClick(event) {
 }
 
 onMounted(() => {
-  syncOwnerState();
+  // Picks up an admin's approval decision (or any role change) on page
+  // load, without needing to log out and back in.
+  if (isAuthenticated.value) {
+    store.dispatch("auth/refreshProfile");
+  }
   document.addEventListener("keydown", handleEscape);
   document.addEventListener("click", handleOutsideClick);
-  window.addEventListener("owner-state-changed", syncOwnerState);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleEscape);
   document.removeEventListener("click", handleOutsideClick);
-  window.removeEventListener("owner-state-changed", syncOwnerState);
 });
 </script>
 
@@ -147,6 +151,17 @@ onUnmounted(() => {
       </nav>
 
       <div class="auth-buttons">
+        <RouterLink
+          v-if="isAuthenticated"
+          to="/cart"
+          class="cart-link"
+          aria-label="View cart"
+          @click="closeMenu"
+        >
+          <span aria-hidden="true">&#128722;</span>
+          <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+        </RouterLink>
+
         <template v-if="isAuthenticated">
           <div class="profile-widget">
             <button
@@ -325,6 +340,40 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.cart-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #111827;
+  text-decoration: none;
+  font-size: 1.15rem;
+}
+
+.cart-link:hover {
+  background: #f7f3ea;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e99b13;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile-widget {

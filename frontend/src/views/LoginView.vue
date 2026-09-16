@@ -1,8 +1,9 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
+const route = useRoute()
 const router = useRouter()
 const store = useStore()
 const email = ref('')
@@ -25,7 +26,7 @@ const handleSubmit = async () => {
       password: password.value,
       remember: remember.value,
     })
-    router.push('/')
+    router.push(route.query.redirect || '/')
   } catch (err) {
     error.value = err.message || 'Unable to log in. Please try again.'
   } finally {

@@ -121,3 +121,22 @@ export const earningsApi = {
   // Logged-in owner's earnings
   get: () => request("/earnings"),
 };
+
+export const ownerApplicationApi = {
+  submit: (payload) =>
+    request("/owner-applications", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getMine: () => request("/owner-applications/me"),
+
+  listAll: (status) =>
+    request(status ? `/owner-applications?status=${status}` : "/owner-applications"),
+
+  approve: (id) =>
+    request(`/owner-applications/${id}/approve`, { method: "PATCH" }),
+
+  reject: (id) =>
+    request(`/owner-applications/${id}/reject`, { method: "PATCH" }),
+};

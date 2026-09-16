@@ -1,5 +1,3 @@
-
-
 DROP DATABASE IF EXISTS rentosphere;
 CREATE DATABASE rentosphere
   CHARACTER SET utf8mb4
@@ -172,6 +170,61 @@ CREATE INDEX idx_earnings_owner ON rental_earnings(owner_id);
 CREATE INDEX idx_earnings_date ON rental_earnings(rental_date);
 CREATE INDEX idx_earnings_status ON rental_earnings(status);
 
+-- ============================================================
+-- 6. OWNER APPLICATIONS
+-- ============================================================
+-- One application per user (a resubmission updates the existing
+-- row and resets it to 'pending' rather than creating a new one).
+-- Reviewed by an admin via /api/owner-applications/:id/approve
+-- or /reject, which is what flips a user's ownerStatus to
+-- 'approved' and unlocks the owner dashboard in the frontend.
+
+CREATE TABLE owner_applications (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT UNSIGNED NOT NULL,
+
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    phone VARCHAR(30) NOT NULL,
+
+    address VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    province VARCHAR(100) NOT NULL,
+    postal_code VARCHAR(20) NOT NULL,
+
+    bank_name VARCHAR(100) NOT NULL,
+    account_holder VARCHAR(150) NOT NULL,
+    account_number VARCHAR(50) NOT NULL,
+    account_type VARCHAR(30) NOT NULL,
+    branch_code VARCHAR(20) NOT NULL,
+
+    status ENUM('pending', 'approved', 'rejected')
+        NOT NULL DEFAULT 'pending',
+
+    reviewed_by INT UNSIGNED NULL,
+    reviewed_at DATETIME NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_owner_app_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_owner_app_reviewer
+        FOREIGN KEY (reviewed_by)
+        REFERENCES users(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT unique_owner_application_user
+        UNIQUE (user_id)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_owner_app_status ON owner_applications(status);
+
 
 
 SHOW TABLES;
@@ -181,6 +234,7 @@ DESCRIBE listings;
 DESCRIBE bookings;
 DESCRIBE favorites;
 DESCRIBE rental_earnings;
+DESCRIBE owner_applications;
 
 -- ============================================================
 -- OPTIONAL DEVELOPMENT TEST DATA

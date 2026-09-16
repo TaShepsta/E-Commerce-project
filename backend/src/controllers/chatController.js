@@ -125,7 +125,7 @@ If information is unavailable, be honest about it.
 `
 
     const response = await hf.chatCompletion({
-      model: 'openai/gpt-oss-120b',
+      model: 'openai/gpt-oss-120b:cerebras',
       messages: [
         {
           role: 'system',

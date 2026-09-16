@@ -444,6 +444,16 @@ const steps = [
   }
 }
 
+@media (max-width: 900px) {
+  .category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 650px) {
   .hero-container {
     padding: 35px 20px;
@@ -498,6 +508,11 @@ const steps = [
     min-height: 0;
     object-fit: cover;
     object-position: center;
+  }
+
+  .category-grid,
+  .steps-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -641,7 +656,7 @@ const steps = [
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
 }
 
@@ -710,7 +725,7 @@ const steps = [
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
   text-align: center;
 }

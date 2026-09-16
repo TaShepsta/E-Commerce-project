@@ -52,7 +52,7 @@
       </div>
 
       <div class="filter-group">
-        <h4>Price Range</h4>
+        <h4>Price range</h4>
         <input
           type="range"
           min="0"
@@ -91,7 +91,7 @@
     <main class="product-main">
       <div class="browse-header">
         <div>
-          <h2>Browse Verified Listings</h2>
+          <h2>Browse verified listings</h2>
           <p>{{ filteredProducts.length }} item{{ filteredProducts.length === 1 ? "" : "s" }} available</p>
         </div>
 
@@ -165,7 +165,7 @@
               :src="p.image_url || p.image"
               :alt="p.title || p.name"
             />
-            <span v-else class="placeholder-icon">No Image</span>
+            <span v-else class="placeholder-icon">No image</span>
             <span
               class="badge"
               :class="p.status === 'Safety Verified' ? 'verified' : 'pending'"
@@ -177,7 +177,7 @@
           <div class="card-body">
             <h4>{{ p.title || p.name }}</h4>
             <p class="meta">
-              {{ p.location || "Location available on request" }} •
+              {{ p.location || "Location available on request" }} ·
               {{ normalizeCategoryName(p.category) }}
             </p>
 
@@ -191,13 +191,13 @@
               <span class="price">R{{ p.price_per_day || p.price }}<small>/day</small></span>
             </div>
             <div class="earning-hint">
-              Owner Earnings: R{{
+              Owner earnings: R{{
                 ((p.price_per_day || p.price) * 0.85).toFixed(0)
               }}
-              | Fee: R{{ ((p.price_per_day || p.price) * 0.15).toFixed(0) }}
+              &nbsp;·&nbsp; Fee: R{{ ((p.price_per_day || p.price) * 0.15).toFixed(0) }}
             </div>
             <button class="btn-small" @click="selectedProduct = p">
-              View Details & Book
+              View details & book
             </button>
           </div>
         </div>
@@ -341,9 +341,24 @@ const filteredProducts = computed(() => {
 
 <style scoped>
 .browse-layout {
+  --paper: #faf6ee;
+  --surface: #ffffff;
+  --surface-alt: #f3ecdc;
+  --pine: #0b3b2e;
+  --pine-deep: #082820;
+  --gold: #d99a2b;
+  --gold-deep: #b87f1b;
+  --line: #e4decf;
+  --ink: #17231f;
+  --ink-soft: #5e6863;
+  --ink-faint: #a3a89e;
+  --danger: #8f1d1d;
+
   display: flex;
   min-height: calc(100vh - 72px);
-  background: #f7f3ea;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
   position: relative;
 }
 
@@ -352,10 +367,9 @@ const filteredProducts = computed(() => {
 .filter-sidebar {
   width: 280px;
   flex-shrink: 0;
-  background: #fff;
-  border-right: 1px solid #e6e2da;
-  padding: 28px 24px;
-  color: #111827;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 30px 26px;
 }
 
 .filter-sidebar-header {
@@ -366,7 +380,10 @@ const filteredProducts = computed(() => {
 
 .filter-sidebar-header h3 {
   margin: 0;
-  color: #0b3b32;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--pine);
 }
 
 .filter-sidebar-actions {
@@ -378,7 +395,7 @@ const filteredProducts = computed(() => {
 .clear-filters {
   border: none;
   background: none;
-  color: #e99b13;
+  color: var(--gold-deep);
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -391,28 +408,27 @@ const filteredProducts = computed(() => {
   background: none;
   font-size: 1rem;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--ink-soft);
 }
 
 .filter-group {
-  margin-top: 28px;
+  margin-top: 30px;
 }
 
 .filter-group h4 {
-  font-size: 13px;
-  margin-bottom: 14px;
+  font-size: 0.82rem;
+  margin: 0 0 14px;
   font-weight: 700;
-  color: #172033;
-  letter-spacing: 0.2px;
+  color: var(--ink);
 }
 
 .checkbox {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
-  margin: 10px 0;
-  color: #33393f;
+  font-size: 0.88rem;
+  margin: 11px 0;
+  color: var(--ink-soft);
   cursor: pointer;
 }
 
@@ -427,15 +443,15 @@ const filteredProducts = computed(() => {
   width: 17px;
   height: 17px;
   flex-shrink: 0;
-  border: 1.5px solid #d8d2c4;
-  border-radius: 5px;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
   position: relative;
   transition: background 0.15s, border-color 0.15s;
 }
 
 .checkbox input:checked + .checkbox-box {
-  background: #0b3b32;
-  border-color: #0b3b32;
+  background: var(--pine);
+  border-color: var(--pine);
 }
 
 .checkbox input:checked + .checkbox-box::after {
@@ -450,21 +466,25 @@ const filteredProducts = computed(() => {
   transform: rotate(40deg);
 }
 
+.checkbox input:focus-visible + .checkbox-box {
+  box-shadow: 0 0 0 3px rgba(217, 154, 43, 0.25);
+}
+
 .slider {
   width: 100%;
-  accent-color: #e9a11a;
+  accent-color: var(--gold);
 }
 
 .price-range-labels {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  font-size: 12px;
-  color: #8a8f96;
+  font-size: 0.76rem;
+  color: var(--ink-faint);
 }
 
 .price-range-current {
-  color: #0b3b32;
+  color: var(--pine);
   font-weight: 700;
 }
 
@@ -477,34 +497,38 @@ const filteredProducts = computed(() => {
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #9aa0a6;
+  color: var(--ink-faint);
 }
 
 .filter-input {
   width: 100%;
   height: 42px;
-  border: 1px solid #e6e2da;
-  border-radius: 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
   padding: 0 14px 0 34px;
-  font-size: 14px;
+  font-size: 0.88rem;
+  font-family: "Inter", sans-serif;
   box-sizing: border-box;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .filter-input:focus,
 .search-input:focus {
   outline: none;
-  border-color: #e9a11a;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(217, 154, 43, 0.18);
 }
 
 .apply-mobile {
   display: none;
   width: 100%;
-  margin-top: 30px;
+  margin-top: 32px;
   height: 46px;
   border: none;
-  border-radius: 9px;
-  background: #0b3b32;
-  color: white;
+  border-radius: 6px;
+  background: var(--gold);
+  color: var(--pine-deep);
   font-weight: 700;
   cursor: pointer;
 }
@@ -525,12 +549,13 @@ const filteredProducts = computed(() => {
   gap: 8px;
   height: 40px;
   padding: 0 16px;
-  border: 1px solid #e6e2da;
-  border-radius: 9px;
-  background: white;
-  color: #172033;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
   font-weight: 700;
   font-size: 0.88rem;
+  font-family: "Inter", sans-serif;
 }
 
 .filter-count {
@@ -541,8 +566,8 @@ const filteredProducts = computed(() => {
   height: 18px;
   padding: 0 4px;
   border-radius: 50%;
-  background: #e9a11a;
-  color: #172033;
+  background: var(--gold);
+  color: var(--pine-deep);
   font-size: 0.7rem;
   font-weight: 800;
 }
@@ -555,8 +580,7 @@ const filteredProducts = computed(() => {
 
 .product-main {
   flex: 1;
-  padding: 36px 40px;
-  color: #111827;
+  padding: 40px 44px;
   min-width: 0;
 }
 
@@ -569,14 +593,16 @@ const filteredProducts = computed(() => {
 }
 
 .browse-header h2 {
-  font-size: 26px;
-  font-weight: 700;
-  color: #0b3b32;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 1.8rem;
+  letter-spacing: -0.01em;
+  color: var(--pine);
   margin: 0;
 }
 
 .browse-header p {
-  color: #7b8288;
+  color: var(--ink-soft);
   margin-top: 6px;
 }
 
@@ -595,27 +621,30 @@ const filteredProducts = computed(() => {
   left: 13px;
   top: 50%;
   transform: translateY(-50%);
-  color: #9aa0a6;
+  color: var(--ink-faint);
 }
 
 .search-input {
   width: 220px;
   height: 42px;
-  border: 1px solid #e6e2da;
-  border-radius: 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
   padding: 0 14px 0 36px;
-  font-size: 14px;
+  font-size: 0.88rem;
+  font-family: "Inter", sans-serif;
   box-sizing: border-box;
+  color: var(--ink);
 }
 
 .sort-select {
   height: 42px;
-  border: 1px solid #e6e2da;
-  border-radius: 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
   padding: 0 14px;
-  font-size: 14px;
-  background: white;
-  color: #172033;
+  font-size: 0.88rem;
+  font-family: "Inter", sans-serif;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 /* ---------------- ACTIVE FILTER CHIPS ---------------- */
@@ -624,7 +653,7 @@ const filteredProducts = computed(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 22px;
 }
 
 .chip {
@@ -633,8 +662,8 @@ const filteredProducts = computed(() => {
   gap: 8px;
   padding: 6px 8px 6px 14px;
   border-radius: 20px;
-  background: #f2ede2;
-  color: #0b3b32;
+  background: var(--surface-alt);
+  color: var(--pine);
   font-size: 0.82rem;
   font-weight: 600;
 }
@@ -647,8 +676,8 @@ const filteredProducts = computed(() => {
   height: 18px;
   border: none;
   border-radius: 50%;
-  background: rgba(11, 59, 50, 0.12);
-  color: #0b3b32;
+  background: rgba(11, 59, 46, 0.12);
+  color: var(--pine);
   font-size: 0.65rem;
   cursor: pointer;
 }
@@ -658,27 +687,27 @@ const filteredProducts = computed(() => {
 .grid-three {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  margin-top: 28px;
+  gap: 26px;
+  margin-top: 30px;
 }
 
 .product-card {
-  background: #fff;
-  border: 1px solid #e6e2da;
-  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-  color: #111827;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 30px rgba(23, 32, 51, 0.1);
+  transform: translateY(-3px);
+  border-color: #d7cfba;
+  box-shadow: 0 16px 32px rgba(11, 59, 46, 0.09);
 }
 
 .product-image {
   height: 180px;
-  background: #f2ede2;
+  background: var(--surface-alt);
   position: relative;
   display: flex;
   align-items: center;
@@ -692,8 +721,8 @@ const filteredProducts = computed(() => {
 }
 
 .placeholder-icon {
-  font-size: 14px;
-  color: #9aa0a6;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
 }
 
 .badge {
@@ -702,104 +731,108 @@ const filteredProducts = computed(() => {
   left: 12px;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 0.68rem;
   font-weight: 700;
   color: #fff;
 }
 
 .badge.verified {
-  background: #0b3b32;
+  background: var(--pine);
 }
 
 .badge.pending {
-  background: #e9a11a;
-  color: #172033;
+  background: var(--gold);
+  color: var(--pine-deep);
 }
 
 .card-body {
-  padding: 18px;
+  padding: 20px;
 }
 
 .card-body h4 {
-  font-size: 15px;
-  font-weight: 700;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 1.05rem;
   margin: 0;
-  color: #172033;
+  color: var(--ink);
 }
 
 .meta {
-  font-size: 12px;
-  color: #7b8288;
-  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 7px 0 0;
 }
 
 .rating-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 8px 0 0;
-  font-size: 12px;
+  margin: 9px 0 0;
+  font-size: 0.78rem;
 }
 
 .stars {
-  color: #e9a11a;
+  color: var(--gold);
   letter-spacing: 1px;
-  font-size: 11px;
+  font-size: 0.7rem;
 }
 
 .rating-value {
   font-weight: 700;
-  color: #172033;
+  color: var(--ink);
 }
 
 .rating-count {
-  color: #9aa0a6;
+  color: var(--ink-faint);
 }
 
 .price-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .price {
-  font-weight: 800;
-  font-size: 18px;
-  color: #0b3b32;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--pine);
 }
 
 .price small {
-  font-weight: 500;
-  font-size: 12px;
-  color: #7b8288;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
 }
 
 .earning-hint {
-  font-size: 11px;
-  color: #7b8288;
-  margin-top: 8px;
-  background: #f7f3ea;
-  padding: 5px 8px;
-  border-radius: 6px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  background: var(--paper);
+  padding: 6px 9px;
+  border-radius: 5px;
 }
 
 .btn-small {
-  margin-top: 14px;
+  margin-top: 16px;
   width: 100%;
-  height: 38px;
-  background: #172033;
+  height: 40px;
+  background: var(--pine);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.82rem;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   transition: background 0.15s;
 }
 
 .btn-small:hover {
-  background: #0b3b32;
+  background: var(--pine-deep);
 }
 
 /* ---------------- SKELETON ---------------- */
@@ -850,42 +883,47 @@ const filteredProducts = computed(() => {
 /* ---------------- EMPTY STATE ---------------- */
 
 .empty-state {
-  margin-top: 60px;
-  padding: 60px 20px;
+  margin-top: 64px;
+  padding: 64px 20px;
   text-align: center;
-  border: 1px dashed #dcd7cc;
-  border-radius: 14px;
-  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
 }
 
 .empty-icon {
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   margin: 0 auto 18px;
   border-radius: 50%;
-  background: #f2ede2;
-  color: #e99b13;
+  background: var(--surface-alt);
+  color: var(--gold-deep);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
 }
 
 .empty-state h3 {
   margin: 0;
-  color: #0b3b32;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--pine);
 }
 
 .empty-state p {
   margin: 10px auto 0;
   max-width: 360px;
-  color: #7b8288;
+  color: var(--ink-soft);
+  line-height: 1.6;
 }
 
 .btn-empty {
   display: inline-block;
   width: auto;
   padding: 0 22px;
+  margin-top: 22px;
 }
 
 /* ---------------- RESPONSIVE ---------------- */
@@ -906,8 +944,8 @@ const filteredProducts = computed(() => {
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
-    background: white;
-    border-bottom: 1px solid #e6e2da;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
   }
 
   .filter-sidebar {

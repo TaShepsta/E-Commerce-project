@@ -4,6 +4,10 @@ export const cart = reactive ({
   items: JSON.parse(localStorage.getItem('rentosphere_cart')|| '[]')
 })
 
+// Flat-rate fee for Rentosphere's own delivery courier. Kept as a single
+// source of truth so the Cart summary and Checkout total always match.
+export const DELIVERY_FEE = 99;
+
 export function addToCart(product, days = 1, qty = 1) {
   const existing = cart.items.find(i => i.id === product.id)
   if(existing) {
@@ -12,6 +16,14 @@ export function addToCart(product, days = 1, qty = 1) {
   } else {
     cart.items.push({...product, days, qty})
   }
+  save()
+}
+
+export function updateCartItem(id, changes) {
+  const item = cart.items.find(i => i.id === id)
+  if (!item) return
+  if (changes.days !== undefined) item.days = Math.max(1, changes.days)
+  if (changes.qty !== undefined) item.qty = Math.max(1, changes.qty)
   save()
 }
 
@@ -31,6 +43,10 @@ export const cartTotal = computed(() =>
 
 export const cartCount = computed(() =>
   cart.items.reduce((sum, i) => sum + i.qty, 0)
+)
+
+export const cartGrandTotal = computed(() =>
+  cart.items.length ? cartTotal.value + DELIVERY_FEE : 0
 )
 
 function save() {

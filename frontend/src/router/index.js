@@ -9,6 +9,8 @@ import BrowseView from "../views/BrowseView.vue";
 import MyEarningsView from "../views/MyEarningsView.vue";
 import MyListingsView from "../views/MyListingsView.vue";
 import BecomeAnOwner from "../views/BecomeAnOwner.vue";
+import AdminOwnerApplicationsView from "../views/AdminOwnerApplicationsView.vue";
+import store from "../stores/index.js";
 
 import Cart from "../views/Cart.vue";
 import Checkout from "../views/Checkout.vue";
@@ -59,6 +61,13 @@ const router = createRouter({
     },
 
     {
+      path: "/admin/owner-applications",
+      name: "admin-owner-applications",
+      component: AdminOwnerApplicationsView,
+      meta: { requiresAdmin: true },
+    },
+
+    {
       path: "/about",
       name: "about",
       component: AboutView,
@@ -68,12 +77,14 @@ const router = createRouter({
       path: "/cart",
       name: "cart",
       component: Cart,
+      meta: { requiresAuth: true },
     },
 
     {
       path: "/checkout",
       name: "checkout",
       component: Checkout,
+      meta: { requiresAuth: true },
     },
 
     {
@@ -112,6 +123,16 @@ const router = createRouter({
       component: ResetPasswordView,
     },
   ],
+});
+
+router.beforeEach((to) => {
+  if (to.meta?.requiresAdmin && store.state.auth.user?.role !== "admin") {
+    return { path: "/" };
+  }
+
+  if (to.meta?.requiresAuth && !store.getters["auth/isAuthenticated"]) {
+    return { path: "/login", query: { redirect: to.fullPath } };
+  }
 });
 
 export default router;
