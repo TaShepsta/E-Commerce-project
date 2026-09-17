@@ -20,6 +20,8 @@ import SignupView from "../views/SignupView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ResetPasswordView from "../views/ResetPasswordView.vue";
 import MyBookingsView from "../views/MyBookingsView.vue";
+import PaymentSuccessView from "../views/PaymentSuccessView.vue";
+import PaymentCancelView from "../views/PaymentCancelView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -94,6 +96,20 @@ const router = createRouter({
       path: "/checkout",
       name: "checkout",
       component: Checkout,
+      meta: { requiresAuth: true },
+    },
+
+    {
+      path: "/payment-success",
+      name: "payment-success",
+      component: PaymentSuccessView,
+      meta: { requiresAuth: true },
+    },
+
+    {
+      path: "/payment-cancel",
+      name: "payment-cancel",
+      component: PaymentCancelView,
       meta: { requiresAuth: true },
     },
 

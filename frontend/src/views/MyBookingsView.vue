@@ -22,6 +22,15 @@
           </div>
           <strong>R{{ Number(booking.total_price).toFixed(2) }}</strong>
           <span class="status" :class="booking.status">{{ formatStatus(booking.status) }}</span>
+          <button
+            v-if="booking.status === 'pending_payment'"
+            class="pay-now-button"
+            type="button"
+            :disabled="payingId === booking.id"
+            @click="payNow(booking)"
+          >
+            {{ payingId === booking.id ? "Redirecting…" : "Pay Now" }}
+          </button>
         </article>
       </div>
     </section>
@@ -30,11 +39,25 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { bookingApi } from "../services/api.js";
+import { bookingApi, payfastApi } from "../services/api.js";
+import { redirectToPayfast } from "../utils/payfast.js";
 
 const bookings = ref([]);
 const loading = ref(true);
 const error = ref("");
+const payingId = ref(null);
+
+async function payNow(booking) {
+  payingId.value = booking.id;
+
+  try {
+    const payment = await payfastApi.initiate([booking.id]);
+    redirectToPayfast(payment);
+  } catch (requestError) {
+    error.value = requestError.message;
+    payingId.value = null;
+  }
+}
 
 function formatDate(value) {
   return new Date(`${value}T00:00:00`).toLocaleDateString();
@@ -105,7 +128,7 @@ h1 span {
 }
 .booking-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 24px;
   align-items: center;
   padding: 22px 0;
@@ -135,6 +158,24 @@ h1 span {
 .status.cancelled {
   color: #8b1e1e;
   background: #fde8e8;
+}
+.pay-now-button {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #e99b13;
+  color: #0b3b32;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pay-now-button:hover {
+  background: #d18a0d;
+}
+.pay-now-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .empty-state {
   text-align: center;
@@ -171,7 +212,8 @@ h1 span {
     grid-template-columns: 1fr auto;
     gap: 12px;
   }
-  .booking-row .status {
+  .booking-row .status,
+  .booking-row .pay-now-button {
     grid-column: 1 / -1;
     justify-self: start;
   }

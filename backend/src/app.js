@@ -14,6 +14,7 @@ import earningsRoutes from "./routes/earningsRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import ownerApplicationRoutes from "./routes/ownerApplicationRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
+import payfastRoutes from "./routes/payfastRoutes.js";
 
 import errorHandler, { notFound } from "./middleware/errorHandler.js";
 import pool from "./config/db.js";
@@ -115,6 +116,8 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/owner-applications", ownerApplicationRoutes);
 
 app.use("/api/favorites", favoriteRoutes);
+
+app.use("/api/payfast", payfastRoutes);
 
 
 // ============================================================

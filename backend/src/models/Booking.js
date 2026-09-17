@@ -10,7 +10,7 @@ const Booking = {
   }) {
     const [result] = await pool.query(
       `INSERT INTO bookings
-        (product_id, renter_id, start_date, end_date, total_price)
+        (listing_id, renter_id, start_date, end_date, total_price)
        VALUES (?, ?, ?, ?, ?)`,
       [
         productId,
@@ -43,7 +43,7 @@ const Booking = {
     const [rows] = await pool.query(
       `SELECT id
        FROM bookings
-       WHERE product_id = ?
+       WHERE listing_id = ?
          AND status NOT IN ('cancelled', 'completed')
          AND start_date <= ?
          AND end_date >= ?
@@ -65,7 +65,7 @@ const Booking = {
         p.title AS listing_title
        FROM bookings b
        JOIN products p
-         ON p.id = b.product_id
+         ON p.id = b.listing_id
        WHERE b.renter_id = ?
        ORDER BY b.created_at DESC`,
       [renterId],
@@ -81,7 +81,7 @@ const Booking = {
         p.title AS listing_title
        FROM bookings b
        JOIN products p
-         ON p.id = b.product_id
+         ON p.id = b.listing_id
        WHERE p.id IN (
          SELECT id
          FROM products
@@ -101,6 +101,34 @@ const Booking = {
     );
 
     return this.findById(id);
+  },
+
+  // Fetch multiple bookings by id, scoped to a renter — used when
+  // initiating a PayFast payment so a user can't pay for someone else's
+  // booking by guessing an id.
+  async findByIdsForRenter(ids, renterId) {
+    if (!ids.length) return [];
+
+    const [rows] = await pool.query(
+      `SELECT *
+       FROM bookings
+       WHERE id IN (?)
+         AND renter_id = ?`,
+      [ids, renterId],
+    );
+
+    return rows;
+  },
+
+  async updateStatusForIds(ids, status) {
+    if (!ids.length) return;
+
+    await pool.query(
+      `UPDATE bookings
+       SET status = ?
+       WHERE id IN (?)`,
+      [status, ids],
+    );
   },
 };
 

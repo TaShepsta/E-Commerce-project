@@ -163,6 +163,19 @@ export const bookingApi = {
   getMine: () => request("/bookings/mine"),
 };
 
+export const payfastApi = {
+  // Kicks off a PayFast sandbox payment for one or more bookings.
+  // Returns { action, fields, mPaymentId } — action + fields are used to
+  // build the auto-submitting form that redirects to PayFast.
+  initiate: (bookingIds) =>
+    request("/payfast/initiate", {
+      method: "POST",
+      body: JSON.stringify({ bookingIds }),
+    }),
+
+  getStatus: (mPaymentId) => request(`/payfast/status/${mPaymentId}`),
+};
+
 export const favoritesApi = {
   getMine: () => request("/favorites"),
 

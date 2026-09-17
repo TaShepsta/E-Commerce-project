@@ -42,8 +42,8 @@
           <p class="eyebrow">RENTOSPHERE</p>
           <h1>Confirm your booking</h1>
           <p class="checkout-intro">
-            Review your rental details below. No payment is required for this
-            demo booking.
+            Review your rental details below. You'll be redirected to
+            PayFast (sandbox) to complete payment securely.
           </p>
         </div>
       </header>
@@ -233,10 +233,11 @@
           </div>
 
           <div class="demo-note">
-            <strong>Demo booking</strong>
+            <strong>PayFast sandbox</strong>
             <p>
-              No real payment will be processed. Clicking the button will
-              create the booking and send a confirmation email.
+              This uses PayFast's sandbox environment — no real money moves.
+              You'll be taken to PayFast to "pay" with sandbox test card
+              details, then brought back here.
             </p>
           </div>
 
@@ -248,8 +249,8 @@
           >
             {{
               submitting
-                ? "Creating booking…"
-                : "Confirm Booking"
+                ? "Redirecting to PayFast…"
+                : "Pay with PayFast"
             }}
           </button>
         </aside>
@@ -272,7 +273,8 @@ import {
   DELIVERY_FEE,
 } from "../stores/cart.js";
 
-import { bookingApi } from "../services/api.js";
+import { bookingApi, payfastApi } from "../services/api.js";
+import { redirectToPayfast } from "../utils/payfast.js";
 
 const store = useStore();
 const router = useRouter();
@@ -431,22 +433,28 @@ async function placeOrder() {
       `EMAILS SENT: ${successfulEmails}/${results.length}`
     );
 
+    const bookingIds = results.map((result) => result.booking.id);
+
+    // Cart is only cleared once we know the bookings exist — if PayFast
+    // initiation fails below, the bookings still sit as "pending_payment"
+    // and the cart items would otherwise be lost with no way to retry.
     clearCart();
 
-    await Swal.fire({
-      icon: "success",
-      title: "Booking confirmed!",
-      html: `
-        <p>Your booking has been created successfully.</p>
-        <p>
-          A confirmation email has been sent to
-          <strong>${form.email}</strong>.
-        </p>
-      `,
-      confirmButtonText: "Done",
-    });
+    console.log(
+      "STARTING PAYFAST PAYMENT FOR BOOKINGS:",
+      bookingIds
+    );
 
-    router.push("/my-bookings");
+    const payment = await payfastApi.initiate(bookingIds);
+
+    console.log(
+      "PAYFAST PAYMENT INITIATED:",
+      payment.mPaymentId
+    );
+
+    // Full-page redirect to PayFast's sandbox — the rest of the flow
+    // (payment, return/cancel redirect, ITN confirmation) happens there.
+    redirectToPayfast(payment);
   } catch (error) {
     console.error(
       "========== CHECKOUT FAILED =========="
