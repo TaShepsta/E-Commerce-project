@@ -168,8 +168,6 @@
 </template>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap");
-
 .about-page {
   background: #f7f3ea;
   color: #172033;
@@ -177,7 +175,7 @@
 }
 
 .kicker {
-  font-family: "Fraunces", serif;
+  font-family: inherit;
   font-style: italic;
   font-size: 1.05rem;
   color: #e99b13;
@@ -191,7 +189,7 @@
 h1,
 h2,
 h3 {
-  font-family: "Fraunces", serif;
+  font-family: inherit;
   font-weight: 600;
   margin: 0;
   color: #0b3b32;
@@ -302,7 +300,7 @@ h3 {
   bottom: 14px;
   left: 14px;
   right: 14px;
-  font-family: "Fraunces", serif;
+  font-family: inherit;
   font-style: italic;
   font-size: 0.82rem;
   color: #555b64;
@@ -351,7 +349,7 @@ h3 {
 }
 
 .stamp strong {
-  font-family: "Fraunces", serif;
+  font-family: inherit;
   font-size: 1.3rem;
 }
 
@@ -374,7 +372,7 @@ h3 {
 }
 
 .ticket-value {
-  font-family: "Fraunces", serif;
+  font-family: inherit;
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   color: #e99b13;
 }
@@ -513,7 +511,7 @@ h3 {
 
 .stop-year {
   display: inline-block;
-  font-family: "Fraunces", serif;
+  font-family: inherit;
   font-style: italic;
   color: #e99b13;
   margin-bottom: 6px;

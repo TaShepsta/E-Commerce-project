@@ -414,6 +414,22 @@ const steps = [
   display: block;
 }
 
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.steps-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  text-align: center;
+}
+
 @media (max-width: 1100px) {
   .hero-container {
     grid-template-columns: 1fr;
@@ -435,7 +451,7 @@ const steps = [
   }
 
   .hero-visual {
-    min-height: 500px;
+    min-height: 0;
   }
 
   .road-image {
@@ -484,7 +500,7 @@ const steps = [
   }
 
   .hero-visual {
-    min-height: 600px;
+    min-height: 0;
     align-items: flex-start;
   }
 
@@ -614,6 +630,7 @@ const steps = [
   max-width: 1180px;
   margin: 0 auto;
   padding: 48px 24px;
+  min-width: 0;
 }
 
 .section.alt {
@@ -654,16 +671,11 @@ const steps = [
   text-decoration: none;
 }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
-}
-
 .rental-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 22px;
+  min-width: 0;
 }
 
 .rental-card {
@@ -718,16 +730,6 @@ const steps = [
   margin: 0;
   font-size: 0.82rem;
   color: var(--muted);
-}
-
-.steps-grid {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px;
-  text-align: center;
 }
 
 .steps-grid li {
