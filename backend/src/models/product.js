@@ -7,13 +7,13 @@ const Product = {
                 id,
                 title,
                 category,
-                price_per_day,
+                daily_price AS price_per_day,
                 location,
                 description,
                 image_url,
                 status
-            FROM products
-            WHERE status = 'Safety Verified'
+            FROM listings
+            WHERE status IN ('Available', 'approved')
             ORDER BY id ASC
         `);
 
@@ -27,14 +27,14 @@ const Product = {
                 id,
                 title,
                 category,
-                price_per_day,
+                daily_price AS price_per_day,
                 location,
                 description,
                 image_url,
                 status
-            FROM products
+            FROM listings
             WHERE id = ?
-              AND status = 'Safety Verified'
+              AND status IN ('Available', 'approved')
             `,
             [id]
         );
