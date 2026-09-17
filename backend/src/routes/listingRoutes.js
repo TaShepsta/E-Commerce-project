@@ -9,6 +9,7 @@ import {
   getMyListings,
   updateListing,
   updateListingStatus,
+  serveListingImage,
 } from "../controllers/listingController.js";
 
 import authenticate from "../middleware/auth.js";
@@ -16,12 +17,20 @@ import roleCheck from "../middleware/roleCheck.js";
 
 const router = express.Router();
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
 
-// Public browse
+// PUBLIC BROWSE
+
 router.get("/", getApprovedListings);
 
-// Owner creates a listing
+// PUBLIC LISTING IMAGE
+
+router.get("/:id/image", serveListingImage);
+
+// OWNER CREATES LISTING
+
 router.post(
   "/",
   authenticate,
@@ -30,7 +39,8 @@ router.post(
   createListing
 );
 
-// Owner's listings
+// OWNER'S LISTINGS
+
 router.get(
   "/mine",
   authenticate,
@@ -38,9 +48,13 @@ router.get(
   getMyListings
 );
 
+// PUBLIC SINGLE LISTING
+
 router.get("/:id", getApprovedListingById);
 
-// Owner updates or deletes their own listing
+
+// OWNER UPDATES LISTING
+
 router.put(
   "/:id",
   authenticate,
@@ -49,6 +63,10 @@ router.put(
   updateListing
 );
 
+
+// OWNER DELETES LISTING
+
+
 router.delete(
   "/:id",
   authenticate,
@@ -56,7 +74,8 @@ router.delete(
   deleteListing
 );
 
-// Admin approves/rejects listing
+// ADMIN APPROVES/REJECTS
+
 router.patch(
   "/:id/status",
   authenticate,
@@ -65,3 +84,4 @@ router.patch(
 );
 
 export default router;
+

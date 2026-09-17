@@ -8,6 +8,7 @@ dotenv.config();
 
 import authRoutes from "./routes/authRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import earningsRoutes from "./routes/earningsRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
@@ -23,6 +24,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
+// ============================================================
+// MIDDLEWARE
+// ============================================================
 
 app.use(
   cors({
@@ -46,6 +50,9 @@ app.use(
 );
 
 
+// ============================================================
+// HEALTH CHECK
+// ============================================================
 
 app.get("/api/health", async (_req, res) => {
   try {
@@ -63,7 +70,7 @@ app.get("/api/health", async (_req, res) => {
     );
 
     const [[products]] = await pool.query(
-      "SELECT COUNT(*) AS count FROM listings WHERE status IN ('Available', 'approved')",
+      "SELECT COUNT(*) AS count FROM products",
     );
 
     res.json({
@@ -89,124 +96,15 @@ app.get("/api/health", async (_req, res) => {
 });
 
 
-
-app.get("/api/products", async (req, res, next) => {
-  try {
-    const { category, location } = req.query;
-
-    let sql = `
-      SELECT
-        id,
-        title,
-        category,
-        daily_price AS price_per_day,
-        location,
-        description,
-        CASE
-          WHEN image_url IS NOT NULL AND image_url <> '' THEN image_url
-          ELSE CONCAT('/api/listings/', id, '/image')
-        END AS image_url,
-        status
-      FROM listings
-      WHERE status IN ('Available', 'approved')
-    `;
-
-    const values = [];
-
-    if (category) {
-      sql += " AND category = ?";
-      values.push(category);
-    }
-
-    if (location) {
-      sql += " AND location LIKE ?";
-      values.push(`%${location}%`);
-    }
-
-    sql += " ORDER BY id DESC";
-
-    const [rows] = await pool.query(sql, values);
-
-    res.json(rows);
-  } catch (error) {
-    next(error);
-  }
-});
-
-
-
-app.get("/api/products/:id", async (req, res, next) => {
-  try {
-    const [rows] = await pool.query(
-      `
-        SELECT
-          id,
-          title,
-          category,
-          daily_price AS price_per_day,
-          location,
-          description,
-          image_url,
-          status
-        FROM listings
-        WHERE id = ?
-          AND status IN ('Available', 'approved')
-        LIMIT 1
-      `,
-      [req.params.id],
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({
-        message: "Product not found.",
-      });
-    }
-
-    res.json(rows[0]);
-  } catch (error) {
-    next(error);
-  }
-});
-
-
-
-app.get("/api/listings/:id/image", async (req, res, next) => {
-  try {
-    const [rows] = await pool.query(
-      `
-        SELECT
-          image_data,
-          image_mime_type
-        FROM listings
-        WHERE id = ?
-      `,
-      [req.params.id],
-    );
-
-    const listing = rows[0];
-
-    if (!listing?.image_data) {
-      return res.status(404).json({
-        message: "Listing image not found.",
-      });
-    }
-
-    res.setHeader(
-      "Content-Type",
-      listing.image_mime_type || "image/jpeg",
-    );
-
-    res.send(listing.image_data);
-  } catch (error) {
-    next(error);
-  }
-});
-
-
+// ============================================================
+// API ROUTES
+// ============================================================
 
 app.use("/api/auth", authRoutes);
 
 app.use("/api/listings", listingRoutes);
+
+app.use("/api/products", productRoutes);
 
 app.use("/api/bookings", bookingRoutes);
 
@@ -219,6 +117,9 @@ app.use("/api/owner-applications", ownerApplicationRoutes);
 app.use("/api/favorites", favoriteRoutes);
 
 
+// ============================================================
+// ROOT
+// ============================================================
 
 app.get("/", (_req, res) => {
   res.json({
@@ -226,6 +127,10 @@ app.get("/", (_req, res) => {
   });
 });
 
+
+// ============================================================
+// ERROR HANDLING
+// ============================================================
 
 app.use(notFound);
 

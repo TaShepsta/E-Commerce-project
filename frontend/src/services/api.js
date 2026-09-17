@@ -71,13 +71,26 @@ async function request(path, options = {}) {
 
 
 export const productsApi = {
-  // Compatibility aliases for older callers; listings are the public catalog.
-  getAll: () => request("/listings"),
+  getAll: (filters = {}) => {
+    const params = new URLSearchParams();
 
-  getById: (id) => request(`/listings/${id}`),
+    if (filters.category) {
+      params.append("category", filters.category);
+    }
+
+    if (filters.location) {
+      params.append("location", filters.location);
+    }
+
+    const query = params.toString();
+
+    return request(
+      query ? `/products?${query}` : "/products"
+    );
+  },
+
+  getById: (id) => request(`/products/${id}`),
 };
-
-
 
 export const listingsApi = {
   // Public listings

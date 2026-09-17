@@ -10,20 +10,28 @@ import { cartCount } from "./stores/cart.js";
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
+
 const menuOpen = ref(false);
 const profileMenuOpen = ref(false);
 
-const isAuthenticated = computed(() => store.getters["auth/isAuthenticated"]);
+const isAuthenticated = computed(
+  () => store.getters["auth/isAuthenticated"]
+);
+
 const currentUser = computed(() => store.state.auth.user);
+
 const isAdmin = computed(() => currentUser.value?.role === "admin");
 
-// The owner dashboard should unlock only after an admin approves the
-// submitted owner application.
-const isOwnerAccount = computed(() => currentUser.value?.role === "owner");
+// Owner account
+const isOwnerAccount = computed(
+  () => currentUser.value?.role === "owner"
+);
+
+// Owner dashboard/navigation only unlocks after approval.
 const isApprovedOwner = computed(
   () =>
     isOwnerAccount.value &&
-    currentUser.value?.ownerStatus === "approved",
+    currentUser.value?.ownerStatus === "approved"
 );
 
 function toggleMenu() {
@@ -66,27 +74,36 @@ function goToSignup() {
 
 function handleLogout() {
   closeMenu();
+  closeProfileMenu();
+
   store.dispatch("auth/logout");
   router.push("/");
 }
 
-watch(() => route.fullPath, () => {
-  closeMenu();
-  closeProfileMenu();
-});
+watch(
+  () => route.fullPath,
+  () => {
+    closeMenu();
+    closeProfileMenu();
+  }
+);
 
 function handleOutsideClick(event) {
-  if (profileMenuOpen.value && !event.target.closest(".profile-widget")) {
+  if (
+    profileMenuOpen.value &&
+    !event.target.closest(".profile-widget")
+  ) {
     closeProfileMenu();
   }
 }
 
 onMounted(() => {
-  // Picks up an admin's approval decision (or any role change) on page
-  // load, without needing to log out and back in.
+  // Refresh the user's profile so owner approval/role changes
+  // are picked up without requiring another login.
   if (isAuthenticated.value) {
     store.dispatch("auth/refreshProfile");
   }
+
   document.addEventListener("keydown", handleEscape);
   document.addEventListener("click", handleOutsideClick);
 });
@@ -99,11 +116,17 @@ onUnmounted(() => {
 
 <template>
   <div id="app">
+    <!-- NAVBAR -->
     <header class="navbar">
+      <!-- LOGO -->
       <RouterLink to="/" class="logo-link">
-        <img :src="logo" alt="Rentosphere logo" />
+        <img
+          :src="logo"
+          alt="Rentosphere logo"
+        />
       </RouterLink>
 
+      <!-- MOBILE MENU BUTTON -->
       <button
         class="menu-toggle"
         type="button"
@@ -117,47 +140,103 @@ onUnmounted(() => {
         <span></span>
       </button>
 
+      <!-- MAIN NAVIGATION -->
       <nav
         id="primary-navigation"
         class="desktop-nav"
         :class="{ 'is-open': menuOpen }"
       >
-        <RouterLink to="/" @click="closeMenu">Home</RouterLink>
+        <!-- HOME -->
+        <RouterLink
+          to="/"
+          @click="closeMenu"
+        >
+          Home
+        </RouterLink>
 
-        <RouterLink to="/browse" @click="closeMenu">Browse</RouterLink>
+        <!-- BROWSE -->
+        <RouterLink
+          to="/browse"
+          @click="closeMenu"
+        >
+          Browse
+        </RouterLink>
 
+        <!--
+          MY BOOKINGS
+
+          Visible to normal logged-in renters.
+          Hidden from:
+          - Admins
+          - Approved owners
+        -->
+        <RouterLink
+          v-if="
+            isAuthenticated &&
+            !isAdmin &&
+            !isApprovedOwner
+          "
+          to="/my-bookings"
+          @click="closeMenu"
+        >
+          My Bookings
+        </RouterLink>
+
+        <!-- ADMIN NAVIGATION -->
         <template v-if="isAdmin">
-          <RouterLink to="/admin/owner-applications" @click="closeMenu">
+          <RouterLink
+            to="/admin/owner-applications"
+            @click="closeMenu"
+          >
             Owner Applications
           </RouterLink>
         </template>
 
+        <!-- APPROVED OWNER NAVIGATION -->
         <template v-else-if="isApprovedOwner">
-          <RouterLink to="/my-listings" @click="closeMenu">
+          <RouterLink
+            to="/my-listings"
+            @click="closeMenu"
+          >
             My Listings
           </RouterLink>
 
-          <RouterLink to="/my-earnings" @click="closeMenu">
+          <RouterLink
+            to="/my-earnings"
+            @click="closeMenu"
+          >
             My Earnings
           </RouterLink>
         </template>
 
+        <!-- NORMAL RENTER / PUBLIC NAVIGATION -->
         <template v-else>
-          <RouterLink to="/how-it-works" @click="closeMenu">
+          <RouterLink
+            to="/how-it-works"
+            @click="closeMenu"
+          >
             How It Works
           </RouterLink>
 
-          <RouterLink to="/become-owner" @click="closeMenu">
+          <RouterLink
+            to="/become-owner"
+            @click="closeMenu"
+          >
             Become an Owner
           </RouterLink>
 
-          <RouterLink to="/about" @click="closeMenu">
+          <RouterLink
+            to="/about"
+            @click="closeMenu"
+          >
             About Us
           </RouterLink>
         </template>
       </nav>
 
+      <!-- RIGHT SIDE OF NAVBAR -->
       <div class="auth-buttons">
+        <!-- CART -->
         <RouterLink
           v-if="isAuthenticated"
           to="/cart"
@@ -166,11 +245,19 @@ onUnmounted(() => {
           @click="closeMenu"
         >
           <span aria-hidden="true">&#128722;</span>
-          <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+
+          <span
+            v-if="cartCount > 0"
+            class="cart-badge"
+          >
+            {{ cartCount }}
+          </span>
         </RouterLink>
 
+        <!-- LOGGED-IN USER -->
         <template v-if="isAuthenticated">
           <div class="profile-widget">
+            <!-- PROFILE AVATAR -->
             <button
               class="profile-avatar"
               type="button"
@@ -182,10 +269,22 @@ onUnmounted(() => {
               {{ userInitial }}
             </button>
 
-            <div v-if="profileMenuOpen" class="profile-dropdown">
-              <p class="profile-dropdown-name">{{ currentUser?.name || "there" }}</p>
-              <p class="profile-dropdown-email">{{ currentUser?.email }}</p>
+            <!-- PROFILE DROPDOWN -->
+            <div
+              v-if="profileMenuOpen"
+              class="profile-dropdown"
+            >
+              <p class="profile-dropdown-name">
+                {{ currentUser?.name || "there" }}
+              </p>
+
+              <p class="profile-dropdown-email">
+                {{ currentUser?.email }}
+              </p>
+
               <hr />
+
+              <!-- ADMIN -->
               <RouterLink
                 v-if="isAdmin"
                 to="/admin/owner-applications"
@@ -194,6 +293,26 @@ onUnmounted(() => {
               >
                 Owner Applications
               </RouterLink>
+
+              <!--
+                MY BOOKINGS
+
+                Normal renters only.
+                Approved owners do NOT see this.
+              -->
+              <RouterLink
+                v-if="
+                  !isAdmin &&
+                  !isApprovedOwner
+                "
+                to="/my-bookings"
+                class="profile-dropdown-link"
+                @click="closeProfileMenu"
+              >
+                My Bookings
+              </RouterLink>
+
+              <!-- MY LISTINGS -->
               <RouterLink
                 v-if="isApprovedOwner"
                 to="/my-listings"
@@ -202,6 +321,8 @@ onUnmounted(() => {
               >
                 My Listings
               </RouterLink>
+
+              <!-- MY EARNINGS -->
               <RouterLink
                 v-if="isApprovedOwner"
                 to="/my-earnings"
@@ -210,29 +331,49 @@ onUnmounted(() => {
               >
                 My Earnings
               </RouterLink>
-              <button class="profile-dropdown-logout" @click="handleLogout">
+
+              <!-- LOG OUT -->
+              <button
+                class="profile-dropdown-logout"
+                type="button"
+                @click="handleLogout"
+              >
                 Log out
               </button>
             </div>
           </div>
         </template>
+
+        <!-- LOGGED-OUT USER -->
         <template v-else>
-          <button class="login-button" @click="goToLogin">
+          <button
+            class="login-button"
+            type="button"
+            @click="goToLogin"
+          >
             Log in
           </button>
 
-          <button class="signup-button" @click="goToSignup">
+          <button
+            class="signup-button"
+            type="button"
+            @click="goToSignup"
+          >
             Sign up
           </button>
         </template>
       </div>
     </header>
 
+    <!-- PAGE CONTENT -->
     <main>
       <RouterView />
     </main>
 
+    <!-- FOOTER -->
     <Footer />
+
+    <!-- CHATBOT -->
     <Chatbot />
   </div>
 </template>
@@ -257,6 +398,10 @@ a {
   font-family: inherit;
 }
 
+/* =========================
+   NAVBAR
+========================= */
+
 .navbar {
   min-height: 72px;
   padding: 0 5%;
@@ -271,6 +416,10 @@ a {
   z-index: 1000;
 }
 
+/* =========================
+   LOGO
+========================= */
+
 .logo-link {
   display: flex;
   align-items: center;
@@ -283,6 +432,10 @@ a {
   display: block;
 }
 
+/* =========================
+   MAIN NAV
+========================= */
+
 .desktop-nav {
   flex: 1;
   display: flex;
@@ -290,6 +443,42 @@ a {
   justify-content: center;
   gap: 28px;
 }
+
+.desktop-nav a {
+  position: relative;
+  color: #111827;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: 0.2s ease;
+}
+
+.desktop-nav a:hover,
+.desktop-nav a.router-link-active {
+  color: #111827;
+}
+
+.desktop-nav a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  background: #e99b13;
+  transition: transform 0.2s ease;
+}
+
+.desktop-nav a:hover::after,
+.desktop-nav a.router-link-active::after {
+  transform: scaleX(1);
+}
+
+/* =========================
+   MOBILE MENU
+========================= */
 
 .menu-toggle {
   display: none;
@@ -327,43 +516,19 @@ a {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-.desktop-nav a {
-  position: relative;
-  color: #111827;
-  text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 500;
-  transition: 0.2s ease;
-}
-
-.desktop-nav a:hover,
-.desktop-nav a.router-link-active {
-  color: #111827;
-}
-
-.desktop-nav a::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: -8px;
-  left: 0;
-  height: 2px;
-  transform: scaleX(0);
-  transform-origin: center;
-  background: #e99b13;
-  transition: transform 0.2s ease;
-}
-
-.desktop-nav a:hover::after,
-.desktop-nav a.router-link-active::after {
-  transform: scaleX(1);
-}
+/* =========================
+   RIGHT SIDE
+========================= */
 
 .auth-buttons {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
+/* =========================
+   CART
+========================= */
 
 .cart-link {
   position: relative;
@@ -399,6 +564,10 @@ a {
   justify-content: center;
 }
 
+/* =========================
+   PROFILE
+========================= */
+
 .profile-widget {
   position: relative;
 }
@@ -418,11 +587,15 @@ a {
   justify-content: center;
 }
 
+.profile-avatar:hover {
+  background: #092f29;
+}
+
 .profile-dropdown {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  min-width: 200px;
+  min-width: 210px;
   background: white;
   border: 1px solid #e6e2da;
   border-radius: 10px;
@@ -457,10 +630,12 @@ a {
   font-size: 0.85rem;
   color: #111827;
   text-decoration: none;
+  border-radius: 5px;
 }
 
 .profile-dropdown-link:hover {
   color: #0b3b32;
+  background: #f7f3ea;
 }
 
 .profile-dropdown-logout {
@@ -474,7 +649,16 @@ a {
   font-size: 0.85rem;
   color: #b91c1c;
   font-weight: 600;
+  border-radius: 5px;
 }
+
+.profile-dropdown-logout:hover {
+  background: #fef2f2;
+}
+
+/* =========================
+   LOGIN / SIGNUP
+========================= */
 
 .login-button,
 .signup-button {
@@ -490,6 +674,10 @@ a {
   color: #111827;
 }
 
+.login-button:hover {
+  background: #f7f3ea;
+}
+
 .signup-button {
   background: #0b3b32;
   color: white;
@@ -498,6 +686,10 @@ a {
 .signup-button:hover {
   background: #092f29;
 }
+
+/* =========================
+   TABLET
+========================= */
 
 @media (max-width: 1050px) {
   .desktop-nav {
@@ -512,6 +704,10 @@ a {
     width: 150px;
   }
 }
+
+/* =========================
+   MOBILE
+========================= */
 
 @media (max-width: 800px) {
   .navbar {
@@ -562,5 +758,11 @@ a {
     padding: 8px 11px;
     font-size: 0.78rem;
   }
+
+  .profile-dropdown {
+    right: 0;
+    min-width: 195px;
+  }
 }
 </style>
+
