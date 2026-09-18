@@ -85,6 +85,8 @@ CREATE INDEX idx_listings_location ON listings(location);
 
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_id INT UNSIGNED NULL,
+    source_listing_id INT UNSIGNED NULL,
     title VARCHAR(255),
     category VARCHAR(50),
     price_per_day DECIMAL(10,2),
@@ -92,7 +94,17 @@ CREATE TABLE products (
     description TEXT,
     image_url VARCHAR(255),
     status ENUM('Pending Inspection', 'Safety Verified')
-        DEFAULT 'Pending Inspection'
+        DEFAULT 'Pending Inspection',
+
+    CONSTRAINT fk_products_owner
+        FOREIGN KEY (owner_id)
+        REFERENCES users(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_products_listing
+        FOREIGN KEY (source_listing_id)
+        REFERENCES listings(id)
+        ON DELETE CASCADE
 );
 
 

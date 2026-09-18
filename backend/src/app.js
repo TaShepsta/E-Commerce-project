@@ -24,6 +24,36 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+async function ensureProductCatalogCompatibility() {
+  try {
+    const [columns] = await pool.query(
+      "SHOW COLUMNS FROM products LIKE 'owner_id'",
+    );
+
+    if (!columns.length) {
+      await pool.query(
+        "ALTER TABLE products ADD COLUMN owner_id INT UNSIGNED NULL",
+      );
+    }
+
+    const [sourceColumns] = await pool.query(
+      "SHOW COLUMNS FROM products LIKE 'source_listing_id'",
+    );
+
+    if (!sourceColumns.length) {
+      await pool.query(
+        "ALTER TABLE products ADD COLUMN source_listing_id INT UNSIGNED NULL",
+      );
+    }
+  } catch (error) {
+    console.warn(
+      "Product catalog compatibility check skipped:",
+      error.message,
+    );
+  }
+}
+
+await ensureProductCatalogCompatibility();
 
 // ============================================================
 // MIDDLEWARE

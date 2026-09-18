@@ -39,6 +39,85 @@ function normalizeListing(listing) {
   };
 }
 
+async function syncProductCatalogEntry(listing) {
+  if (!listing || !listing.id) return null;
+
+  const productStatus =
+    listing.status === "Available" || listing.status === "approved"
+      ? "Safety Verified"
+      : "Pending Inspection";
+
+  const imageUrl =
+    listing.image && listing.image.startsWith("/")
+      ? listing.image
+      : listing.image || null;
+
+  const [existingRows] = await pool.query(
+    `SELECT id
+     FROM products
+     WHERE source_listing_id = ?
+     LIMIT 1`,
+    [listing.id],
+  );
+
+  if (existingRows[0]) {
+    await pool.execute(
+      `UPDATE products
+       SET title = ?,
+           category = ?,
+           price_per_day = ?,
+           location = ?,
+           description = ?,
+           image_url = ?,
+           status = ?,
+           owner_id = ?
+       WHERE id = ?`,
+      [
+        listing.name || listing.title || "",
+        listing.category || "General",
+        Number(listing.price || listing.daily_price || 0),
+        listing.location || "",
+        listing.description || "",
+        imageUrl,
+        productStatus,
+        listing.ownerId || listing.owner_id || null,
+        existingRows[0].id,
+      ],
+    );
+
+    return existingRows[0].id;
+  }
+
+  const [result] = await pool.execute(
+    `INSERT INTO products
+      (
+        title,
+        category,
+        price_per_day,
+        location,
+        description,
+        image_url,
+        status,
+        owner_id,
+        source_listing_id
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      listing.name || listing.title || "",
+      listing.category || "General",
+      Number(listing.price || listing.daily_price || 0),
+      listing.location || "",
+      listing.description || "",
+      imageUrl,
+      productStatus,
+      listing.ownerId || listing.owner_id || null,
+      listing.id,
+    ],
+  );
+
+  return result.insertId;
+}
+
 export async function getPublicListings({ category, location } = {}) {
   const conditions = ["status IN ('Available', 'approved')"];
   const params = [];
@@ -137,7 +216,16 @@ export async function createOwnerListing(listing, ownerId) {
     ],
   );
 
-  return getOwnerListingById(result.insertId, ownerId);
+  const createdListing = await getOwnerListingById(result.insertId, ownerId);
+
+  if (createdListing) {
+    await syncProductCatalogEntry({
+      ...createdListing,
+      ownerId,
+    });
+  }
+
+  return createdListing;
 }
 
 export async function updateOwnerListing(id, listing, ownerId) {
@@ -210,13 +298,41 @@ export async function updateOwnerListing(id, listing, ownerId) {
       `SELECT ${listingFields} FROM listings WHERE id = ?`,
       [id],
     );
-    return rows[0] ? normalizeListing(rows[0]) : null;
+
+    const updatedListing = rows[0] ? normalizeListing(rows[0]) : null;
+
+    if (updatedListing) {
+      await syncProductCatalogEntry(updatedListing);
+    }
+
+    return updatedListing;
   }
 
-  return getOwnerListingById(id, ownerId);
+  const updatedListing = await getOwnerListingById(id, ownerId);
+
+  if (updatedListing) {
+    await syncProductCatalogEntry({
+      ...updatedListing,
+      ownerId,
+    });
+  }
+
+  return updatedListing;
 }
 
 export async function deleteOwnerListing(id, ownerId) {
+  const listing = await getOwnerListingById(id, ownerId);
+
+  if (!listing) {
+    return false;
+  }
+
+  await pool.execute(
+    `DELETE FROM products
+     WHERE source_listing_id = ?`,
+    [id],
+  );
+
   const [result] = await pool.execute(
     "DELETE FROM listings WHERE id = ? AND owner_id = ?",
     [id, ownerId],

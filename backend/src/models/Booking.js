@@ -1,6 +1,49 @@
 import pool from "../config/db.js";
 
 const Booking = {
+  async createEarningsForBooking(bookingId) {
+    const [bookingRows] = await pool.query(
+      `SELECT b.id, b.total_price, b.listing_id, p.owner_id, p.title AS listing_title
+       FROM bookings b
+       LEFT JOIN products p ON p.id = b.listing_id
+       WHERE b.id = ?
+       LIMIT 1`,
+      [bookingId],
+    );
+
+    const booking = bookingRows[0];
+
+    if (!booking || !booking.owner_id) {
+      return null;
+    }
+
+    const [existingRows] = await pool.query(
+      `SELECT id
+       FROM rental_earnings
+       WHERE booking_id = ?
+       LIMIT 1`,
+      [bookingId],
+    );
+
+    if (existingRows[0]) {
+      return existingRows[0];
+    }
+
+    const [result] = await pool.execute(
+      `INSERT INTO rental_earnings
+        (owner_id, booking_id, description, amount, rental_date, status)
+       VALUES (?, ?, ?, ?, CURDATE(), 'Completed')`,
+      [
+        booking.owner_id,
+        bookingId,
+        `Rental payment for ${booking.listing_title || "listing"}`,
+        Number(booking.total_price || 0),
+      ],
+    );
+
+    return { id: result.insertId };
+  },
+
   async create({
     productId,
     renterId,
@@ -129,6 +172,12 @@ const Booking = {
        WHERE id IN (?)`,
       [status, ids],
     );
+
+    if (status === "confirmed" || status === "completed") {
+      for (const id of ids) {
+        await this.createEarningsForBooking(id);
+      }
+    }
   },
 };
 
