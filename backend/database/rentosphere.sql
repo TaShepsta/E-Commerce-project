@@ -6,6 +6,10 @@ CREATE DATABASE rentosphere
 USE rentosphere;
 
 
+-- ============================================================
+-- 1. USERS
+-- ============================================================
+
 CREATE TABLE users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -22,6 +26,9 @@ CREATE TABLE users (
 ) ENGINE=InnoDB;
 
 
+-- ============================================================
+-- 2. LISTINGS
+-- ============================================================
 
 CREATE TABLE listings (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -68,14 +75,38 @@ CREATE INDEX idx_listings_status ON listings(status);
 CREATE INDEX idx_listings_category ON listings(category);
 CREATE INDEX idx_listings_location ON listings(location);
 
+
+-- ============================================================
+-- 7. PRODUCTS
+-- ============================================================
+-- NOTE: this is a separate, static catalogue table used by the
+-- /api/products route (src/models/product.js) and the Browse
+-- page. Bookings reference THIS table (see below), not listings.
+
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
+    category VARCHAR(50),
+    price_per_day DECIMAL(10,2),
+    location VARCHAR(100),
+    description TEXT,
+    image_url VARCHAR(255),
+    status ENUM('Pending Inspection', 'Safety Verified')
+        DEFAULT 'Pending Inspection'
+);
+
+
 -- ============================================================
 -- 3. BOOKINGS
 -- ============================================================
+-- NOTE: listing_id here actually stores a products.id, not a
+-- listings.id -- that's how bookingController.js/Booking.js are
+-- written (they book against the Browse-page products catalogue).
 
 CREATE TABLE bookings (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    listing_id INT UNSIGNED NOT NULL,
+    listing_id INT NOT NULL,
     renter_id INT UNSIGNED NOT NULL,
 
     start_date DATE NOT NULL,
@@ -93,9 +124,9 @@ CREATE TABLE bookings (
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_bookings_listing
+    CONSTRAINT fk_bookings_product
         FOREIGN KEY (listing_id)
-        REFERENCES listings(id)
+        REFERENCES products(id)
         ON DELETE CASCADE,
 
     CONSTRAINT fk_bookings_renter
@@ -112,6 +143,9 @@ CREATE INDEX idx_bookings_renter ON bookings(renter_id);
 CREATE INDEX idx_bookings_status ON bookings(status);
 
 
+-- ============================================================
+-- 4. FAVORITES
+-- ============================================================
 
 CREATE TABLE favorites (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -139,6 +173,9 @@ CREATE INDEX idx_favorites_user ON favorites(user_id);
 CREATE INDEX idx_favorites_listing ON favorites(listing_id);
 
 
+-- ============================================================
+-- 5. RENTAL EARNINGS
+-- ============================================================
 
 CREATE TABLE rental_earnings (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -169,6 +206,7 @@ CREATE TABLE rental_earnings (
 CREATE INDEX idx_earnings_owner ON rental_earnings(owner_id);
 CREATE INDEX idx_earnings_date ON rental_earnings(rental_date);
 CREATE INDEX idx_earnings_status ON rental_earnings(status);
+
 
 -- ============================================================
 -- 6. OWNER APPLICATIONS
@@ -225,52 +263,85 @@ CREATE TABLE owner_applications (
 
 CREATE INDEX idx_owner_app_status ON owner_applications(status);
 
--- ============================================================
--- 7. PRODUCTS
--- ============================================================
--- NOTE: this is a separate, static catalogue table used by the
--- legacy /api/products route (src/models/product.js) and the
--- Browse page's productsApi fallback. It is NOT linked to
--- owners, bookings, or the listings table above — it's just a
--- flat list of rentable items with a verification status.
 
-CREATE TABLE products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255),
-    category VARCHAR(50),
-    price_per_day DECIMAL(10,2),
-    location VARCHAR(100),
-    description TEXT,
-    image_url VARCHAR(255),
-    status ENUM('Pending Inspection', 'Safety Verified')
-        DEFAULT 'Pending Inspection'
-);
+-- ============================================================
+-- 8. PAYMENTS (PayFast integration)
+-- ============================================================
 
+CREATE TABLE payments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    m_payment_id VARCHAR(64) NOT NULL UNIQUE,
+    pf_payment_id VARCHAR(100) NULL,
+
+    renter_id INT UNSIGNED NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+
+    status ENUM(
+        'pending',
+        'complete',
+        'failed',
+        'cancelled'
+    ) NOT NULL DEFAULT 'pending',
+
+    raw_itn JSON NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_payments_renter
+        FOREIGN KEY (renter_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_payments_renter ON payments(renter_id);
+
+
+CREATE TABLE payment_bookings (
+    payment_id INT UNSIGNED NOT NULL,
+    booking_id INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (payment_id, booking_id),
+
+    CONSTRAINT fk_pb_payment
+        FOREIGN KEY (payment_id)
+        REFERENCES payments(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_pb_booking
+        FOREIGN KEY (booking_id)
+        REFERENCES bookings(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 
 SHOW TABLES;
 
 DESCRIBE users;
 DESCRIBE listings;
+DESCRIBE products;
 DESCRIBE bookings;
 DESCRIBE favorites;
 DESCRIBE rental_earnings;
 DESCRIBE owner_applications;
-DESCRIBE products;
+DESCRIBE payments;
+DESCRIBE payment_bookings;
+
 
 -- ============================================================
--- OPTIONAL DEVELOPMENT TEST DATA
+-- ADMIN USER
 -- ============================================================
--- DO NOT insert a fake password hash unless you know the
--- corresponding password. Create an owner through the Signup page.
---
--- After you sign up as an owner, use:
---
--- SELECT id, name, email, role FROM users;
---
--- Then use that owner's ID for the test earnings/listing inserts
--- below if needed.
--- ============================================================
+
+INSERT INTO users (name, email, password_hash, role)
+VALUES (
+    'Caleb Johnson',
+    'calebneojohnson@gmail.com',
+    '$2b$10$SGuBgo9U/HiDtobaoHBWO.p7smHFIZgDkkxHkM9LsQpNllqbH.fA.',
+    'admin'
+);
+
 
 -- ============================================================
 -- PRODUCTS SEED DATA
