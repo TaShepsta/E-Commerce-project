@@ -71,7 +71,7 @@ app.get("/api/health", async (_req, res) => {
     );
 
     const [[products]] = await pool.query(
-      "SELECT COUNT(*) AS count FROM listings WHERE status IN ('Available', 'approved')",
+      "SELECT COUNT(*) AS count FROM products",
     );
 
     res.json({
