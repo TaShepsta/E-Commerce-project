@@ -96,3 +96,8 @@ it, `/api/chat` will just return an error — everything else works fine).
 - `frontend/src/views/BecomeAnOwner.vue` and the archived `BecomeOwner.vue`
   were two competing versions of the same page; `BecomeAnOwner.vue` is the
   one wired into the router and kept active.
+
+Login Admin Details:
+email : calebneojohnson@gmail.com
+password : Dotty@Home123
+
