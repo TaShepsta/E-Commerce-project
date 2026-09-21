@@ -2,12 +2,17 @@
   <RouterLink :to="`/browse?category=${event.slug}`" class="event-card">
     <div class="event-image">
       <img :src="event.image" :alt="event.name" />
+
       <span class="event-number">0{{ index + 1 }}</span>
+
       <span class="card-link">View category</span>
     </div>
+
     <div class="event-info">
       <h3>{{ event.name }}</h3>
+
       <p>{{ event.description }}</p>
+
       <span class="browse-label">Browse rentals</span>
     </div>
   </RouterLink>
@@ -19,6 +24,7 @@ defineProps({
     type: Object,
     required: true,
   },
+
   index: {
     type: Number,
     required: true,
@@ -104,7 +110,9 @@ defineProps({
   font-weight: 700;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .event-card:hover .card-link {
@@ -146,5 +154,31 @@ defineProps({
 
 .event-card:hover .browse-label {
   background: var(--gold-deep);
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+  .event-image {
+    height: 190px;
+  }
+
+  .event-info {
+    padding: 18px;
+  }
+
+  .event-info h3 {
+    font-size: 1.2rem;
+  }
+
+  .event-info p {
+    min-height: auto;
+    margin-bottom: 16px;
+    font-size: 0.86rem;
+  }
+
+  .card-link {
+    opacity: 1;
+    transform: none;
+  }
 }
 </style>

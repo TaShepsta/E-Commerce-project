@@ -48,6 +48,7 @@ const steps = [
             <RouterLink to="/browse" class="btn btn-primary">
               Browse Products
             </RouterLink>
+
             <RouterLink to="/become-owner" class="btn btn-secondary">
               List Your Item
             </RouterLink>
@@ -92,18 +93,24 @@ const steps = [
       </div>
     </section>
 
-
     <!-- SEARCH -->
     <section class="search-section">
       <form class="search-bar" @submit.prevent="$router.push('/browse')">
         <div class="search-field">
-          <label>Location</label>
-          <input type="text" placeholder="Enter location" />
+          <label for="location">Location</label>
+          <input
+            id="location"
+            type="text"
+            placeholder="Enter location"
+          />
         </div>
+
         <div class="search-field">
-          <label>Category</label>
-          <select>
+          <label for="category">Category</label>
+
+          <select id="category">
             <option value="">All Categories</option>
+
             <option
               v-for="category in eventCategories"
               :key="category.slug"
@@ -113,6 +120,7 @@ const steps = [
             </option>
           </select>
         </div>
+
         <button type="submit" class="btn btn-primary search-submit">
           Search
         </button>
@@ -123,15 +131,18 @@ const steps = [
     <section class="section alt earn-section">
       <div class="earn-copy">
         <h2>Earn from what you already own.</h2>
+
         <p>
           List your items and start earning extra income when others rent
           them.
         </p>
+
         <ul>
           <li>✔ Easy listing process</li>
           <li>✔ We do the evaluation</li>
           <li>✔ Get paid securely</li>
         </ul>
+
         <RouterLink to="/become-owner" class="btn btn-primary">
           Become an Owner
         </RouterLink>
@@ -145,6 +156,7 @@ const steps = [
           <p class="eyebrow">EXPLORE</p>
           <h2>Popular Categories</h2>
         </div>
+
         <RouterLink to="/categories" class="section-link">
           View all categories →
         </RouterLink>
@@ -167,6 +179,7 @@ const steps = [
           <p class="eyebrow">TRENDING</p>
           <h2>Popular Near You</h2>
         </div>
+
         <RouterLink to="/browse" class="section-link">
           View all rentals →
         </RouterLink>
@@ -180,14 +193,23 @@ const steps = [
           class="rental-card"
         >
           <div class="rental-image">
-            <img :src="item.image" :alt="item.imageAlt || item.name" />
+            <img
+              :src="item.image"
+              :alt="item.imageAlt || item.name"
+            />
           </div>
+
           <div class="rental-info">
             <h3>{{ item.name }}</h3>
+
             <p class="rental-price">
-              R{{ item.price }} <span>/ {{ item.priceUnit }}</span>
+              R{{ item.price }}
+              <span>/ {{ item.priceUnit }}</span>
             </p>
-            <p class="rental-rating">★ {{ item.rating }} ({{ item.reviews }})</p>
+
+            <p class="rental-rating">
+              ★ {{ item.rating }} ({{ item.reviews }})
+            </p>
           </div>
         </RouterLink>
       </div>
@@ -196,14 +218,21 @@ const steps = [
     <!-- HOW IT WORKS -->
     <section class="section">
       <div class="section-heading centered">
-        <p class="eyebrow">SIMPLE &amp; SAFE</p>
-        <h2>How Rentosphere Works</h2>
+        <div>
+          <p class="eyebrow">SIMPLE &amp; SAFE</p>
+          <h2>How Rentosphere Works</h2>
+        </div>
       </div>
 
       <ol class="steps-grid">
-        <li v-for="(step, index) in steps" :key="step.title">
+        <li
+          v-for="(step, index) in steps"
+          :key="step.title"
+        >
           <span class="step-number">{{ index + 1 }}</span>
+
           <h3>{{ step.title }}</h3>
+
           <p>{{ step.text }}</p>
         </li>
       </ol>
@@ -217,13 +246,17 @@ const steps = [
 
     <!-- BECOME AN OWNER CTA -->
     <section class="cta-banner">
-      <div>
-        <h2>Trusted by a growing community of renters and owners.</h2>
+      <div class="cta-content">
+        <h2>
+          Trusted by a growing community of renters and owners.
+        </h2>
+
         <p>
           Every listing is evaluated for safety and quality before it goes
           live, so you can rent — or list — with confidence.
         </p>
       </div>
+
       <RouterLink to="/become-owner" class="btn btn-accent">
         Become an Owner
       </RouterLink>
@@ -232,26 +265,29 @@ const steps = [
 </template>
 
 <style scoped>
+/* =========================================================
+   BASE
+========================================================= */
+
 .home {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
   display: flex;
   flex-direction: column;
   gap: 0;
+  box-sizing: border-box;
 }
 
-.hero {
-  width: 100%;
-  background: #ffffff;
+.home *,
+.home *::before,
+.home *::after {
+  box-sizing: border-box;
 }
 
-.hero-container {
-  max-width: 1450px;
-  min-height: 610px;
-  margin: 0 auto;
-  padding: 55px 50px;
-  display: grid;
-  grid-template-columns: 1fr 1.15fr;
-  gap: 45px;
-  align-items: center;
+.home img {
+  max-width: 100%;
 }
 
 .eyebrow {
@@ -262,38 +298,9 @@ const steps = [
   letter-spacing: 0.08em;
 }
 
-.hero-content {
-  position: relative;
-  padding-left: 10px;
-}
-
-.hero-content h1 {
-  margin: 0;
-  max-width: 650px;
-  font-size: clamp(48px, 5vw, 76px);
-  line-height: 0.98;
-  font-weight: 800;
-  letter-spacing: -3px;
-  color: #101010;
-}
-
-.hero-content h1 span {
-  color: #063b2f;
-}
-
-.hero-description {
-  max-width: 540px;
-  margin: 28px 0 30px;
-  font-size: 18px;
-  line-height: 1.6;
-  color: #333333;
-}
-
-.hero-buttons {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 38px;
-}
+/* =========================================================
+   BUTTONS
+========================================================= */
 
 .btn {
   min-width: 165px;
@@ -308,8 +315,11 @@ const steps = [
   justify-content: center;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .btn:hover {
@@ -340,6 +350,68 @@ const steps = [
   color: #1a1a1a;
 }
 
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  width: 100%;
+  min-width: 0;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.hero-container {
+  width: 100%;
+  max-width: 1450px;
+  min-height: 610px;
+  margin: 0 auto;
+  padding: 55px 50px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 45px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.hero-content {
+  position: relative;
+  padding-left: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hero-content h1 {
+  margin: 0;
+  max-width: 650px;
+  font-size: clamp(48px, 5vw, 76px);
+  line-height: 0.98;
+  font-weight: 800;
+  letter-spacing: -3px;
+  color: #101010;
+  overflow-wrap: break-word;
+}
+
+.hero-content h1 span {
+  color: #063b2f;
+}
+
+.hero-description {
+  width: 100%;
+  max-width: 540px;
+  margin: 28px 0 30px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #333333;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 38px;
+}
+
 .trust-features {
   display: flex;
   flex-wrap: wrap;
@@ -353,11 +425,13 @@ const steps = [
   font-size: 13px;
   font-weight: 500;
   color: #222222;
+  min-width: 0;
 }
 
 .trust-icon {
   width: 25px;
   height: 25px;
+  flex: 0 0 25px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -366,6 +440,8 @@ const steps = [
 }
 
 .hero-visual {
+  width: 100%;
+  min-width: 0;
   min-height: 500px;
   position: relative;
   display: flex;
@@ -375,6 +451,7 @@ const steps = [
 
 .product-image {
   width: 100%;
+  max-width: 100%;
   height: 430px;
   border-radius: 24px;
   overflow: hidden;
@@ -386,13 +463,19 @@ const steps = [
 
 .product-image img {
   width: 100%;
+  max-width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
+/* =========================================================
+   ROAD
+========================================================= */
+
 .road-section {
   width: 100%;
+  max-width: 100%;
   position: relative;
   overflow: hidden;
   margin-top: 5px;
@@ -400,6 +483,7 @@ const steps = [
 
 .road-scene {
   width: 100%;
+  max-width: 100%;
   position: relative;
   overflow: hidden;
   line-height: 0;
@@ -407,6 +491,7 @@ const steps = [
 
 .road-image {
   width: 100%;
+  max-width: 100%;
   height: auto;
   min-height: 115px;
   object-fit: cover;
@@ -414,157 +499,34 @@ const steps = [
   display: block;
 }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.steps-grid {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px;
-  text-align: center;
-}
-
-@media (max-width: 1100px) {
-  .hero-container {
-    grid-template-columns: 1fr;
-    padding: 50px 35px;
-  }
-
-  .hero-content {
-    text-align: center;
-  }
-
-  .hero-description {
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .hero-buttons,
-  .trust-features {
-    justify-content: center;
-  }
-
-  .hero-visual {
-    min-height: 0;
-  }
-
-  .road-image {
-    min-height: 100px;
-    object-fit: cover;
-  }
-}
-
-@media (max-width: 900px) {
-  .category-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .steps-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 650px) {
-  .hero-container {
-    padding: 35px 20px;
-  }
-
-  .hero-content h1 {
-    font-size: 48px;
-    letter-spacing: -2px;
-  }
-
-  .hero-description {
-    font-size: 16px;
-  }
-
-  .hero-buttons {
-    flex-direction: column;
-  }
-
-  .hero-buttons .btn {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .trust-features {
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-  }
-
-  .hero-visual {
-    min-height: 0;
-    align-items: flex-start;
-  }
-
-  .product-image {
-    width: 100%;
-    height: 350px;
-  }
-
-  .road-section {
-    margin-top: 0;
-  }
-
-  .road-scene {
-    width: 100%;
-    height: 100px;
-  }
-
-  .road-image {
-    width: 100%;
-    height: 100px;
-    min-height: 0;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  .category-grid,
-  .steps-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 400px) {
-  .hero-content h1 {
-    font-size: 42px;
-  }
-
-  .road-scene {
-    height: 85px;
-  }
-
-  .road-image {
-    height: 85px;
-  }
-}
+/* =========================================================
+   SEARCH
+========================================================= */
 
 .search-section {
+  width: 100%;
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 24px 48px;
+  box-sizing: border-box;
 }
 
 .search-bar {
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  background: #fff;
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
+  box-sizing: border-box;
 }
 
 .search-field {
-  flex: 1;
-  min-width: 140px;
+  flex: 1 1 200px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -578,6 +540,9 @@ const steps = [
 
 .search-field input,
 .search-field select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: none;
   font: inherit;
   font-size: 0.92rem;
@@ -594,57 +559,36 @@ const steps = [
   align-self: center;
 }
 
-.earn-section {
-  text-align: center;
-}
-
-.earn-copy {
-  max-width: 560px;
-  margin: 0 auto;
-}
-
-.earn-copy h2 {
-  margin: 0 0 12px;
-  font-size: 1.8rem;
-  color: var(--ink);
-}
-
-.earn-copy p {
-  margin: 0 0 18px;
-  color: var(--muted);
-}
-
-.earn-copy ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 24px;
-  display: flex;
-  justify-content: center;
-  gap: 22px;
-  flex-wrap: wrap;
-  font-size: 0.9rem;
-  color: var(--ink);
-}
+/* =========================================================
+   SECTIONS
+========================================================= */
 
 .section {
+  width: 100%;
   max-width: 1180px;
   margin: 0 auto;
   padding: 48px 24px;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .section.alt {
-  background: var(--cream);
+  width: 100%;
   max-width: none;
+  background: var(--cream);
 }
 
 .section.alt > * {
+  width: 100%;
   max-width: 1180px;
   margin-left: auto;
   margin-right: auto;
+  box-sizing: border-box;
 }
 
 .section-heading {
+  width: 100%;
+  min-width: 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -671,7 +615,64 @@ const steps = [
   text-decoration: none;
 }
 
+/* =========================================================
+   EARN SECTION
+========================================================= */
+
+.earn-section {
+  text-align: center;
+}
+
+.earn-copy {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.earn-copy h2 {
+  margin: 0 0 12px;
+  font-size: 1.8rem;
+  color: var(--ink);
+}
+
+.earn-copy p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.earn-copy ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+/* =========================================================
+   CATEGORIES
+========================================================= */
+
+.category-grid {
+  width: 100%;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  min-width: 0;
+}
+
+/* =========================================================
+   RENTALS
+========================================================= */
+
 .rental-grid {
+  width: 100%;
+  max-width: 100%;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 22px;
@@ -679,14 +680,18 @@ const steps = [
 }
 
 .rental-card {
+  width: 100%;
+  min-width: 0;
   display: block;
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .rental-card:hover {
@@ -695,23 +700,29 @@ const steps = [
 }
 
 .rental-image {
+  width: 100%;
   height: 160px;
+  overflow: hidden;
 }
 
 .rental-image img {
   width: 100%;
+  max-width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
 .rental-info {
+  width: 100%;
+  min-width: 0;
   padding: 16px;
 }
 
 .rental-info h3 {
   margin: 0 0 8px;
   font-size: 1rem;
+  overflow-wrap: break-word;
 }
 
 .rental-price {
@@ -732,7 +743,25 @@ const steps = [
   color: var(--muted);
 }
 
+/* =========================================================
+   HOW IT WORKS
+========================================================= */
+
+.steps-grid {
+  width: 100%;
+  max-width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  text-align: center;
+  min-width: 0;
+}
+
 .steps-grid li {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -742,6 +771,7 @@ const steps = [
 .step-number {
   width: 42px;
   height: 42px;
+  flex: 0 0 42px;
   border-radius: 50%;
   background: var(--gold);
   color: #1a1a1a;
@@ -754,13 +784,16 @@ const steps = [
 .steps-grid h3 {
   margin: 0;
   font-size: 1rem;
+  overflow-wrap: break-word;
 }
 
 .steps-grid p {
+  width: 100%;
+  max-width: 220px;
   margin: 0;
   color: var(--muted);
   font-size: 0.88rem;
-  max-width: 220px;
+  line-height: 1.5;
 }
 
 .steps-cta {
@@ -768,29 +801,437 @@ const steps = [
   margin-top: 28px;
 }
 
+/* =========================================================
+   CTA
+========================================================= */
+
 .cta-banner {
+  width: 100%;
+  max-width: 100%;
   background: var(--green);
-  color: #fff;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
   padding: 48px 24px;
+  box-sizing: border-box;
 }
 
-.cta-banner > div {
+.cta-content {
+  width: 100%;
   max-width: 640px;
+  min-width: 0;
 }
 
 .cta-banner h2 {
   margin: 0 0 10px;
   font-size: 1.5rem;
+  overflow-wrap: break-word;
 }
 
 .cta-banner p {
   margin: 0;
   opacity: 0.85;
+  line-height: 1.6;
 }
 
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+  .hero-container {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: auto;
+    padding: 50px 35px;
+  }
+
+  .hero-content {
+    text-align: center;
+    padding-left: 0;
+  }
+
+  .hero-content h1 {
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-buttons,
+  .trust-features {
+    justify-content: center;
+  }
+
+  .hero-visual {
+    min-height: 0;
+  }
+
+  .product-image {
+    max-width: 850px;
+    margin: 0 auto;
+  }
+
+  .road-image {
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 900px) {
+  .category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rental-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+  .hero {
+    overflow-x: hidden;
+  }
+
+  .hero-container {
+    width: 100%;
+    min-height: auto;
+    padding: 32px 16px 30px;
+    gap: 28px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-content {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    text-align: center;
+  }
+
+  .hero-content h1 {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    font-size: clamp(36px, 11vw, 48px);
+    line-height: 1.02;
+    letter-spacing: -1.8px;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-description {
+    width: 100%;
+    max-width: 100%;
+    margin: 18px auto 24px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .hero-buttons {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .hero-buttons .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .trust-features {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .trust-item {
+    width: 100%;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .hero-visual {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .product-image {
+    width: 100%;
+    height: 270px;
+    border-radius: 18px;
+  }
+
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .road-section {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .road-scene {
+    width: 100%;
+    height: 85px;
+  }
+
+  .road-image {
+    width: 100%;
+    height: 85px;
+    min-height: 0;
+    object-fit: cover;
+  }
+
+  /* SEARCH */
+
+  .search-section {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 14px 36px;
+  }
+
+  .search-bar {
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .search-field {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .search-field input,
+  .search-field select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 44px;
+  }
+
+  .search-submit {
+    width: 100%;
+    min-width: 0;
+    align-self: stretch;
+  }
+
+  /* SECTIONS */
+
+  .section {
+    width: 100%;
+    max-width: 100%;
+    padding: 38px 16px;
+    overflow: hidden;
+  }
+
+  .section.alt {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .section.alt > * {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* EARN */
+
+  .earn-copy {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .earn-copy h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .earn-copy p {
+    font-size: 0.92rem;
+  }
+
+  .earn-copy ul {
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .earn-copy .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* SECTION HEADINGS */
+
+  .section-heading {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+
+  .section-heading.centered {
+    align-items: center;
+    text-align: center;
+  }
+
+  .section-heading h2 {
+    font-size: 1.45rem;
+    line-height: 1.25;
+  }
+
+  .section-link {
+    font-size: 0.84rem;
+  }
+
+  /* CATEGORIES */
+
+  .category-grid {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  /* RENTALS */
+
+  .rental-grid {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .rental-card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rental-image {
+    width: 100%;
+    height: 190px;
+  }
+
+  /* STEPS */
+
+  .steps-grid {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .steps-grid li {
+    width: 100%;
+  }
+
+  .steps-grid p {
+    max-width: 280px;
+  }
+
+  .steps-cta {
+    margin-top: 24px;
+  }
+
+  /* CTA */
+
+  .cta-banner {
+    width: 100%;
+    max-width: 100%;
+    padding: 38px 18px;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .cta-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .cta-banner h2 {
+    font-size: 1.3rem;
+    line-height: 1.3;
+  }
+
+  .cta-banner p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .cta-banner .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 400px) {
+  .hero-container {
+    padding: 28px 14px 26px;
+  }
+
+  .hero-content h1 {
+    font-size: clamp(34px, 10.5vw, 40px);
+    letter-spacing: -1.5px;
+  }
+
+  .hero-description {
+    font-size: 14px;
+  }
+
+  .product-image {
+    height: 235px;
+    border-radius: 16px;
+  }
+
+  .road-scene,
+  .road-image {
+    height: 72px;
+  }
+
+  .search-section {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .search-bar {
+    padding: 12px;
+  }
+
+  .section {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .rental-image {
+    height: 175px;
+  }
+
+  .cta-banner {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
 </style>
